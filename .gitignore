@@ -1,0 +1,29 @@
+# +---------------------------------------------------------------------------+
+# | general ignore setup                                                      |
+# +---------------------------------------------------------------------------+
+# ignore temporary files from editor
+*.bak
+*.elc
+*.swp
+*.s
+*.tmp
+*.vhd.~y.yy~
+*.vhd.~
+*.old
+
+# ignore editor configuration settings
+Session.vim
+tags
+
+# ignore CVS directories if present
+/**/CVS
+
+
+/Simulation/wlf*
+/Simulation/*transcript*
+/Simulation/vsim*
+/Simulation/pciebfm0*
+/Simulation/transcript
+/Simulation/test_report.txt
+/Simulation/work/
+/Simulation/a25.cr.mti
