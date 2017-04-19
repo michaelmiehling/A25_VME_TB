@@ -49,3 +49,5 @@ How to run the simulation:
 4) run do file: do build_all_a25.do
 
 5) each test case reports an error sum at the end of its execution => if there are no errors, test has passed
+
+Info: Duration of test bench run with all test cases is approximately 50 min on a i7-2620M @ 2.6 GHz running Windows 7 and Modelsim PE 6.6
