@@ -13,26 +13,27 @@ Testbench:     Main VHDL sources for A25 test bench
 
                Hierarchy of the bench:
                a25_tb.vhd
-                  |- terminal					main control module of the test bench
+                  |- terminal				main control module of the test bench
                   |- mt58l512l18f			simulation model of external SRAM
                   |- SN74ABT125				simulation model of external bus driver
                   |- SN74LVTH245			simulation model of external bus driver
-                  |- vmebus						simulation model of VMEbus
+                  |- vmebus				simulation model of VMEbus
                    |- vme_sim_mon			VMEbus timing monitor
-                   |- vme_sim_mstr		simulation model of VMEbus master
-                   |- vme_sim_slave		simulation model of VMEbus slave
+                   |- vme_sim_mstr			simulation model of VMEbus master
+                   |- vme_sim_slave			simulation model of VMEbus slave
 
-							Packages:
+		Packages:
                   terminal_pkg				package with all test case implementations
                   vme_sim_pack				package for vmebus internal definitions
 
 Simulation:		Work folder of simulator Modelsim (PE 6.6)
-             	a25.mpf									Modelsim project file
-             	build_all_a25.do				main do file to run the simulation
-             	test_report.txt					Modelsim log
-             	wbm_x_transcript.txt		Access log of Wishbone master #x
-             	wbs_x_transcript.txt		Access log of Wishbone slave #x
-             	pciebfm0_trans.txt			Access log of PCIe simulation model
+
+		a25.mpf				Modelsim project file
+        	build_all_a25.do		main do file to run the simulation
+        	test_report.txt			Modelsim log
+        	wbm_x_transcript.txt		Access log of Wishbone master #x
+        	wbs_x_transcript.txt		Access log of Wishbone slave #x
+        	pciebfm0_trans.txt		Access log of PCIe simulation model
                   
 
 How to run the simulation:
@@ -48,3 +49,5 @@ How to run the simulation:
 4) run do file: do build_all_a25.do
 
 5) each test case reports an error sum at the end of its execution => if there are no errors, test has passed
+
+Info: Duration of test bench run with all test cases is approximately 50 min on a i7-2620M @ 2.6 GHz running Windows 7 and Modelsim PE 6.6
