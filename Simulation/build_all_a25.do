@@ -185,13 +185,14 @@ vsim -t fs  \
 work.a25_tb_conf 
 
 add wave sim:/a25_tb/a25/*
-#add wave sim:/a25_tb/a25/vme/vmedma/*
-#add wave sim:/a25_tb/a25/vme/vmedma/dma_mstr/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/du/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/bustimer/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/master/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/requester/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/arbiter/*
-#add wave sim:/a25_tb/vme_bus/*
-#add wave sim:/a25_tb/vme_bus/vmesimmstr/*
+add wave sim:/a25_tb/a25/vme/vmedma/*
+add wave sim:/a25_tb/a25/vme/vmedma/dma_mstr/*
+add wave sim:/a25_tb/a25/vme/vmectrl/du/*
+add wave sim:/a25_tb/a25/vme/vmectrl/au/*
+add wave sim:/a25_tb/a25/vme/vmectrl/bustimer/*
+add wave sim:/a25_tb/a25/vme/vmectrl/master/*
+add wave sim:/a25_tb/a25/vme/vmectrl/requester/*
+add wave sim:/a25_tb/a25/vme/vmectrl/arbiter/*
+add wave sim:/a25_tb/vme_bus/*
+add wave sim:/a25_tb/vme_bus/vmesimmstr/*
 run -all

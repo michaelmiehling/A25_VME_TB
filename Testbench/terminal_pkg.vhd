@@ -133,6 +133,7 @@ PACKAGE terminal_pkg IS
   CONSTANT VME_A16D32     : std_logic_vector(31 DOWNTO 0):=x"0003_0000" + BAR0;
   CONSTANT VME_A24D16     : std_logic_vector(31 DOWNTO 0):=x"0000_0000" + BAR2;
   CONSTANT VME_A24D32     : std_logic_vector(31 DOWNTO 0):=x"0100_0000" + BAR2;
+  CONSTANT VME_CRCSR      : std_logic_vector(31 DOWNTO 0):=x"0000_0000" + BAR4;
   CONSTANT VME_A32D32     : std_logic_vector(31 DOWNTO 0):=x"0000_0000" + BAR3;
 
   CONSTANT SRAM           : std_logic_vector(31 DOWNTO 0):=x"0000_0000" + BAR1;
@@ -2904,6 +2905,33 @@ PACKAGE BODY terminal_pkg IS
       rd16(terminal_in_0, terminal_out_0, VME_A32D32 + x"1000_000a", x"3434_0000", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
       rd16(terminal_in_0, terminal_out_0, VME_A32D32 + x"1000_0008", x"0000_7878", 1, en_msg_0, TRUE, "000001", loc_err);
+      err_sum := err_sum + loc_err;
+      wait_for(terminal_in_1, terminal_out_1, 10, TRUE);
+
+      print("Test: VME CR/CSR");
+      wr16(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0008", x"0000_7878", 1, en_msg_0, TRUE, "000001");
+      wr16(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_000a", x"3434_0000", 1, en_msg_0, TRUE, "000001");
+      wr32(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0030", x"5555_6666", 1, en_msg_0, TRUE, "000001");
+      rd32(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0030", x"5555_6666", 1, en_msg_0, TRUE, "000001", loc_err);
+      err_sum := err_sum + loc_err;
+      wr32(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0300", x"cafe_affe", 8, en_msg_0, TRUE, "000001");
+      wr8(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0100", x"4433_2211", 1, en_msg_0, TRUE, "000001");
+      wr8(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0101", x"0000_2200", 1, en_msg_0, TRUE, "000001");
+      wr8(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0102", x"0033_0000", 1, en_msg_0, TRUE, "000001");
+      wr8(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0103", x"4400_0000", 1, en_msg_0, TRUE, "000001");
+      rd32(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0300", x"cafe_affe", 8, en_msg_0, TRUE, "000001", loc_err);
+      err_sum := err_sum + loc_err;
+      rd8(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0100", x"0000_0011", 1, en_msg_0, TRUE, "000001", loc_err);
+      err_sum := err_sum + loc_err;
+      rd8(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0101", x"0000_2200", 1, en_msg_0, TRUE, "000001", loc_err);
+      err_sum := err_sum + loc_err;
+      rd8(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0102", x"0033_0000", 1, en_msg_0, TRUE, "000001", loc_err);
+      err_sum := err_sum + loc_err;
+      rd8(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0103", x"4400_0000", 1, en_msg_0, TRUE, "000001", loc_err);
+      err_sum := err_sum + loc_err;
+      rd16(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_000a", x"3434_0000", 1, en_msg_0, TRUE, "000001", loc_err);
+      err_sum := err_sum + loc_err;
+      rd16(terminal_in_0, terminal_out_0, VME_CRCSR + x"0040_0008", x"0000_7878", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
       wait_for(terminal_in_1, terminal_out_1, 10, TRUE);
    

@@ -63,9 +63,10 @@ PACKAGE vme_sim_pack IS
    CONSTANT time_23     : time:= 10 ns;
    CONSTANT time_11     : time:= 40 ns;
    
-   CONSTANT sl_base_A16 : std_logic_vector(3 DOWNTO 0):= "0001";
-   CONSTANT sl_base_A24 : std_logic_vector(3 DOWNTO 0):= "0010";
-   CONSTANT sl_base_A32 : std_logic_vector(3 DOWNTO 0):= "0011";
+   CONSTANT sl_base_A16 	: std_logic_vector(3 DOWNTO 0):= "0001";	-- vme base address for A16 slave = 0x1000
+   CONSTANT sl_base_A24 	: std_logic_vector(3 DOWNTO 0):= "0010";	-- vme base address for A24 slave = 0x20_0000
+   CONSTANT sl_base_CRCSR : std_logic_vector(3 DOWNTO 0):= "0100";	-- vme base address for CR/CSR slave = 0x40_0000
+   CONSTANT sl_base_A32 	: std_logic_vector(3 DOWNTO 0):= "0011";	-- vme base address for A32 slave = 0x3000_0000
   
    SUBTYPE adr_type2 IS string(8 DOWNTO 1);
    SUBTYPE adr_type IS std_logic_vector(31 DOWNTO 0);

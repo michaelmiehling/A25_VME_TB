@@ -248,6 +248,7 @@ BEGIN
          -- all normal accesses   
          ELSIF iackn /= '0' AND ( (addr_int(15 DOWNTO 12) = sl_base_A16 AND am_int(5 DOWNTO 4) = "10") OR
             (addr_int(23 DOWNTO 20) = sl_base_A24 AND am_int(5 DOWNTO 4) = "11") OR
+            (addr_int(23 DOWNTO 20) = sl_base_CRCSR AND am_int(5 DOWNTO 0) = "101111") OR
             (addr_int(31 DOWNTO 28) = sl_base_A32 AND am_int(5 DOWNTO 4) = "00") )THEN
               
             sim_slave_active <= '1';
@@ -255,8 +256,8 @@ BEGIN
                WAIT FOR (time_28 - time_27);
                dtackn_out <= '0';
                IF (dsbn_in = '0' AND dsan_in = '0' AND addr_int(1 DOWNTO 0) = "01") OR   
-                  (dsbn_in = '0' AND dsan_in = '1' AND addr_int(1 DOWNTO 0) = "01") OR   
-                  (dsbn_in = '1' AND dsan_in = '0' AND addr_int(1 DOWNTO 0) = "01") THEN
+                  (dsbn_in = '0' AND dsan_in /= '0' AND addr_int(1 DOWNTO 0) = "01") OR   
+                  (dsbn_in /= '0' AND dsan_in = '0' AND addr_int(1 DOWNTO 0) = "01") THEN
                   rd_data(conv_integer(addr_int(11 DOWNTO 2)), data, allocated, mem_head);
                   data_out(15 DOWNTO 0)    <= data(31 DOWNTO 16);
                   data_out(31 DOWNTO 16)   <= data(15 DOWNTO 0);
@@ -281,13 +282,13 @@ BEGIN
                WAIT FOR time_28;
                IF addr_int(0) = '1' THEN   -- lwordn = '1' => D16
                   data := data_in(15 DOWNTO 8) & data_in(7 DOWNTO 0) & data_in(15 DOWNTO 8) & data_in(7 DOWNTO 0);
-                  IF dsan_in = '1' AND dsbn_in = '0' AND addr_int(1) = '0' THEN
+                  IF dsan_in /= '0' AND dsbn_in = '0' AND addr_int(1) = '0' THEN
                      wr_data(conv_integer(addr_int(11 DOWNTO 2)), data, "1000", mem_head);
-                  ELSIF dsan_in = '0' AND dsbn_in = '1' AND addr_int(1) = '0' THEN
+                  ELSIF dsan_in = '0' AND dsbn_in /= '0' AND addr_int(1) = '0' THEN
                      wr_data(conv_integer(addr_int(11 DOWNTO 2)), data, "0100", mem_head);
-                  ELSIF dsan_in = '1' AND dsbn_in = '0' AND addr_int(1) = '1' THEN
+                  ELSIF dsan_in /= '0' AND dsbn_in = '0' AND addr_int(1) = '1' THEN
                      wr_data(conv_integer(addr_int(11 DOWNTO 2)), data, "0010", mem_head);
-                  ELSIF dsan_in = '0' AND dsbn_in = '1' AND addr_int(1) = '1' THEN
+                  ELSIF dsan_in = '0' AND dsbn_in /= '0' AND addr_int(1) = '1' THEN
                      wr_data(conv_integer(addr_int(11 DOWNTO 2)), data, "0001", mem_head);
                   ELSIF dsan_in = '0' AND dsbn_in = '0' AND addr_int(1) = '0' THEN
                      wr_data(conv_integer(addr_int(11 DOWNTO 2)), data, "1100", mem_head);
