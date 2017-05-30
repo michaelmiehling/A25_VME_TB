@@ -1,15 +1,26 @@
+####################################################################
+##  Configuration of pathes for libraries and A25_VME repo clone  ##
+####################################################################
+## Modify according to your local setup
+
+setenv ALT_LIBS /opt/altera/modelsim_lib/vhdl_libs
+setenv A25_VME_PATH ../../A25_VME
+
+####################################################################
+vlib work
+
 ## Altera Simulation Libraries:
 ##
-vmap lpm D:/modelsim_lib/pe66_quartus121/lpm
-vmap altera_mf D:/modelsim_lib/pe66_quartus121/altera_mf
-vmap cycloneiv D:/modelsim_lib/pe66_quartus121/cycloneiv
-vmap altera D:/modelsim_lib/pe66_quartus121/altera
-vmap altera_mf D:/modelsim_lib/pe66_quartus121/altera_mf
-vmap cycloneiv D:/modelsim_lib/pe66_quartus121/cycloneiv
-vmap cycloneiv_hssi D:/modelsim_lib/pe66_quartus121/cycloneiv_hssi
-vmap sgate D:/modelsim_lib/pe66_quartus121/sgate
-vmap lpm D:/modelsim_lib/pe66_quartus121/lpm
-vmap cycloneiv_pcie_hip D:/modelsim_lib/pe66_quartus121/cycloneiv_pcie_hip
+vmap lpm       $env(ALT_LIBS)/lpm
+vmap altera_mf $env(ALT_LIBS)/altera_mf
+vmap cycloneiv $env(ALT_LIBS)/cycloneiv
+vmap altera    $env(ALT_LIBS)/altera
+vmap altera_mf $env(ALT_LIBS)/altera_mf
+vmap cycloneiv $env(ALT_LIBS)/cycloneiv
+vmap cycloneiv_hssi $env(ALT_LIBS)/cycloneiv_hssi
+vmap sgate     $env(ALT_LIBS)/sgate
+vmap lpm       $env(ALT_LIBS)/lpm
+vmap cycloneiv_pcie_hip $env(ALT_LIBS)/cycloneiv_pcie_hip
 
 ## PLDA Simulation Libraries:
 ##
@@ -19,7 +30,7 @@ vcom -force_refresh -work pciebfm_lib
 
 ## Packages and Simulation Models
 ##
-vcom -work work -2002 ../../16a025-00_src/16z000-00_src/Source/fpga_pkg_2.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z000-00_src/Source/fpga_pkg_2.vhd
 
 vcom -work work -2002 -explicit ../16x010-00_src/Source/conversions.vhd
 vcom -work work -2002 -explicit ../16x010-00_src/Source/print_pkg.vhd
@@ -35,104 +46,104 @@ vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_sim.vhd
 ## DUT Source
 ##
 # remote update
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_pkg.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_ru_ctrl.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_ru_ctrl_cyc5.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_ru/z126_01_ru_cycloneiv.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_wbmon.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_wb2pasmi.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_wb_pkg.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_wb_if_arbiter.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_top.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_indi_if_ctrl_regs.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_fifo_d1.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_clk_trans_wb2wb.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_switch_fab_2.vhd
-vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_pasmi/z126_01_pasmi_m25p32.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_pkg.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_ru_ctrl.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_ru_ctrl_cyc5.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_ru/z126_01_ru_cycloneiv.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_wbmon.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_wb2pasmi.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_wb_pkg.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_wb_if_arbiter.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_top.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_indi_if_ctrl_regs.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_fifo_d1.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_clk_trans_wb2wb.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_switch_fab_2.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_pasmi/z126_01_pasmi_m25p32.vhd
 
 # iram
-vcom -work work -2002 ../../16a025-00_src/16z024-01_src/Source/iram_wb.vhd
-vcom -work work -2002 ../../16a025-00_src/16z024-01_src/Source/iram_av.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z024-01_src/Source/iram_wb.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z024-01_src/Source/iram_av.vhd
 
 
 
 ## vme
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_pkg.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_dma_arbiter.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_dma_au.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_dma_du.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_dma_fifo.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_dma_mstr.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_dma_slv.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_dma.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_arbiter.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_sys_arbiter.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_au.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_bustimer.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_ctrl.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_du.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_locmon.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_mailbox.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_master.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_requester.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_slave.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_wbm.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_wbs.vhd
-vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/wbb2vme_top.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_pkg.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_dma_arbiter.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_dma_au.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_dma_du.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_dma_fifo.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_dma_mstr.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_dma_slv.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_dma.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_arbiter.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_sys_arbiter.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_au.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_bustimer.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_ctrl.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_du.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_locmon.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_mailbox.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_master.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_requester.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_slave.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_wbm.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/vme_wbs.vhd
+vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/wbb2vme_top.vhd
 
 # pcie core simulation files
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_rs_serdes.vhd      
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_250.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_125_250.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1_core.vho
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_rs_serdes.vhd      
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_250.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_125_250.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_core.vho
 
 
 
 ## pcie2wbb
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/src_utils_pkg.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/pcie_msi.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/alt_reconf/alt_reconf.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/generic_dcfifo_mixedw.vhd
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/rx_len_cntr.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/rx_get_data.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/rx_ctrl.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/rx_module.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/z091_01_wb_master.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/error.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/tx_put_data.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/tx_compl_timeout.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/tx_ctrl.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/tx_module.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/init.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/z091_01_wb_slave.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/interrupt_core.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/interrupt_wb.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/ip_16z091_01.vhd 
-vcom -2002 ../../16a025-00_src/Source/z091_01_wb_adr_dec.vhd
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1_serdes.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4_serdes.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/ip_16z091_01_top.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/src_utils_pkg.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/pcie_msi.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/alt_reconf/alt_reconf.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/generic_dcfifo_mixedw.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/rx_len_cntr.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/rx_get_data.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/rx_ctrl.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/rx_module.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/z091_01_wb_master.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/error.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/tx_put_data.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/tx_compl_timeout.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/tx_ctrl.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/tx_module.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/init.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/z091_01_wb_slave.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/interrupt_core.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/interrupt_wb.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/ip_16z091_01.vhd 
+vcom -2002 $env(A25_VME_PATH)/Source/z091_01_wb_adr_dec.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_serdes.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x4/Hard_IP_x4_serdes.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x4/Hard_IP_x4.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/ip_16z091_01_top.vhd
 
 
 # 16z100
-vcom -work work -93 ../../16a025-00_src/Source/wb_pkg.vhd
-vcom -work work -93 ../../16a025-00_src/16z100-00_src/Source/switch_fab_1.vhd
-vcom -work work -93 ../../16a025-00_src/16z100-00_src/Source/switch_fab_2.vhd
-vcom -work work -93 ../../16a025-00_src/16z100-00_src/Source/switch_fab_3.vhd
-vcom -work work -93 ../../16a025-00_src/16z100-00_src/Source/switch_fab_4.vhd
-vcom -work work -93 ../../16a025-00_src/16z100-00_src/Source/wbmon.vhd
-vcom -work work -93 ../../16a025-00_src/16z100-00_src/Source/fifo_d1.vhd
-vcom -work work -93 ../../16a025-00_src/16z100-00_src/Source/clk_trans_wb2wb.vhd
-vcom -work work -93 ../../16a025-00_src/Source/wb_bus.vhd
+vcom -work work -93 $env(A25_VME_PATH)/Source/wb_pkg.vhd
+vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/switch_fab_1.vhd
+vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/switch_fab_2.vhd
+vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/switch_fab_3.vhd
+vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/switch_fab_4.vhd
+vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/wbmon.vhd
+vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/fifo_d1.vhd
+vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/clk_trans_wb2wb.vhd
+vcom -work work -93 $env(A25_VME_PATH)/Source/wb_bus.vhd
 
 
 
 ## Toplevel
-vcom -2002 ../../16a025-00_src/Source/pll_pcie/pll_pcie.vhd
-vcom -2002 ../../16a025-00_src/Source/sram.vhd
-vcom -2002 ../../16a025-00_src/Source/A25_top.vhd
+vcom -2002 $env(A25_VME_PATH)/Source/pll_pcie/pll_pcie.vhd
+vcom -2002 $env(A25_VME_PATH)/Source/sram.vhd
+vcom -2002 $env(A25_VME_PATH)/Source/A25_top.vhd
 
 
 ## Testbench
