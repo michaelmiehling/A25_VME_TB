@@ -115,30 +115,42 @@ if {![file isdirectory "$libdir/libs/stratixiigx_hssi"]} {
       $PathToOldQuartus/eda/sim_lib/stratixiigx_hssi_components.vhd \
       $PathToOldQuartus/eda/sim_lib/stratixiigx_hssi_atoms.vhd 
 }
-#TODO: REPLACE -->
-## PLDA Simulation Libraries:
-if {![file isdirectory "$libdir/libs/pciebfm_lib"]} {
-   puts "..prepare ALTERA PHYPCS library"
-   vmap pciebfm_lib "../16x004-00_src/Source/PLDA_BFM/modelsim/pciebfm_lib"
-   vcom -force_refresh -work pciebfm_lib
-}
-# <-- end replace
 
 
 ## Packages and Simulation Models
 ##
-vcom -work work -2002 ../../16a025-00_src/16z000-00_src/Source/fpga_pkg_2.vhd
+# only recompile unchanged sources if necessary, checking one folder should be enough
+# recompiling Altera BFM sources is time consuming
+if {![file isdirectory "$libdir/work/fpga_pkg_2"]} {
+   vcom -work work -2002 ../../16a025-00_src/16z000-00_src/Source/fpga_pkg_2.vhd
 
-vcom -work work -2002 -explicit ../16x010-00_src/Source/conversions.vhd
-vcom -work work -2002 -explicit ../16x010-00_src/Source/print_pkg.vhd
-vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_pkg.vhd             
-vcom -work work -2002 -explicit ../Testbench/vme_sim_pack.vhd
-vcom -work work -2002 -explicit ../16x004-00_src/source/utils_pkg.vhd             
-vcom -work work -2002 -explicit ../16x004-00_src/source/types_pkg.vhd             
-vcom -work work -2002 -explicit ../16x004-00_src/source/pcie_x1_pkg.vhd
-vcom -work work -2002 -explicit ../Testbench/terminal_pkg.vhd
-vcom -work work -2002 -explicit ../16x004-00_src/source/pcie_x1_sim.vhd
-vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_sim.vhd             
+   vcom -work work -2002 -explicit ../16x010-00_src/Source/conversions.vhd
+   vcom -work work -2002 -explicit ../16x010-00_src/Source/print_pkg.vhd
+   vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_pkg.vhd
+   vcom -work work -2002 -explicit ../Testbench/vme_sim_pack.vhd
+   vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_sim.vhd
+
+   # PCIe BFM
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_common.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_constants.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_log.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_shmem.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_req_intf.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rdwr.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_configure.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_pipe_xtx2yrx.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_pipe_phy.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rp_top_x8_pipen1b.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rpvar_64b_x8_gen1_pipen1b.vho
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rpvar_64b_x8_gen2_pipen1b.vho
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_vc_intf.vhd
+}
+
+vcom -work work -2008 ../16x004-01_src/Source/utils_pkg.vhd
+vcom -work work -2008 ../16x004-01_src/Source/types_pkg.vhd
+vcom -work work -2008 ../16x004-01_src/Source/pcie_sim_pkg.vhd
+vcom -work work -2008 -explicit ../Testbench/terminal_pkg.vhd
+vcom -work work -2008 ../16x004-01_src/Source/pcie_sim.vhd
 
 ## DUT Source
 ##
@@ -165,9 +177,6 @@ vcom -work work -2002 ../../16a025-00_tb/Testbench/m25p32/acdc_check.vhd
 vcom -work work -2002 ../../16a025-00_tb/Testbench/m25p32/m25p32.vhd 
 vcom -work work -2002 ../../16a025-00_tb/Testbench/z126_01_pasmi_m25p32_sim.vhd
 vcom -work work -2002 ../../16a025-00_tb/Testbench/z126_01_altremote_update_sim_model.vhd
-#vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_pasmi/z126_01_pasmi_m25p32.vhd
-#vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_pasmi/z126_01_pasmi_m25p64.vhd
-#vcom -work work -2002 ../../16a025-00_src/16z126-01_src/Source/z126_01_pasmi/z126_01_pasmi_m25p128.vhd
 
 # iram
 vcom -work work -2002 ../../16a025-00_src/16z024-01_src/Source/iram_acex.vhd
@@ -207,11 +216,11 @@ vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_wbs.vhd
 vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/wbb2vme_top.vhd
 
 # pcie core simulation files
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_rs_serdes.vhd      
+vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_rs_serdes.vhd
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_100_250.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_125_250.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/Hard_IP_x1_core.vho
-#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Simulation/Hard_IP_x4_core.vho
+vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Simulation/Hard_IP_x4_core.vho
 
 
 
@@ -220,10 +229,6 @@ vcom -2002 ../../16a025-00_src/16z091-01_src/Source/src_utils_pkg.vhd
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/generic_dcfifo_mixedw.vhd
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/pcie_msi.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/alt_reconf.vhd 
-#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/rx_fifo.vhd 
-#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/tx_data_fifo.vhd 
-#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/tx_header_fifo.vhd 
-#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/err_fifo.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/rx_len_cntr.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/rx_get_data.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/rx_ctrl.vhd 
@@ -244,7 +249,7 @@ vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1_serdes.vhd
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4_serdes.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/ip_16z091_01_top.vhd
+vcom -2008 ../Testbench/ip_16z091_01_top_sim.vhd
 
 
 # 16z100
@@ -260,11 +265,11 @@ vcom -work work -93 ../../16a025-00_src/Source/wb_bus.vhd
 
 
 
+
 ## Toplevel
-vcom -2002 ../../16a025-00_src/Source/pll_pcie.vhd
-vcom -2002 ../../16a025-00_src/Source/sram.vhd
-vcom -2002 ../Testbench/a25_top_sim.vhd
-#vcom -2002 ../../16a025-00_src/Source/a25_top.vhd
+vcom -2008 ../../16a025-00_src/Source/pll_pcie.vhd
+vcom -2008 ../../16a025-00_src/Source/sram.vhd
+vcom -2008 ../Testbench/a25_top_sim.vhd
 
 
 ## Testbench
@@ -278,7 +283,7 @@ vcom -2002 ../Testbench/vme_sim_mstr.vhd
 vcom -2002 ../Testbench/vme_sim_slave.vhd
 vcom -2002 ../Testbench/vmebus.vhd
 
-vcom -2002 ../Testbench/a25_tb.vhd
+vcom -2008 ../Testbench/a25_tb.vhd
 
 vsim -t fs  \
 -L altera \
@@ -290,7 +295,6 @@ vsim -t fs  \
 -L stratixiv_hssi \
 -L cycloneiv_hssi \
 -L stratixiigx_hssi \
--L phypcs_altera_lib \
 -L pciebfm_lib \
 -voptargs=+acc \
 -l test_report.txt\

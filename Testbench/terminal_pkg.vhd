@@ -96,13 +96,10 @@ USE ieee.std_logic_arith.CONV_STD_LOGIC_VECTOR;
 USE work.print_pkg.all;
 USE work.vme_sim_pack.all;
 USE work.iram32_pkg.all;
-USE work.pcie_x1_pkg.ALL;
+USE work.pcie_sim_pkg.ALL;
 LIBRARY modelsim_lib;
 USE modelsim_lib.util.all;
 USE std.textio.all;
-library pciebfm_lib;
-use pciebfm_lib.pkg_plda_fio.all;
-use pciebfm_lib.pkg_xbfm.all;
 
 PACKAGE terminal_pkg IS
      
@@ -511,7 +508,8 @@ PACKAGE BODY terminal_pkg IS
       --! @param mem_addr offset for internal memory space, start at x"0000_0000"
       --! @param start_data_val first data value to write, other values are defined by data_inc
       --! @param data_inc defines the data increment added to start_data_val for DW 2 to nbr_of_dw
-      set_bfm_memory(0, 1, FALSE, TRUE, adr, dat, 1);
+      --set_bfm_memory(0, 1, FALSE, TRUE, adr, dat, 1);
+      set_bfm_memory(nbr_of_dw => 1, mem_addr => adr, start_data_val => dat, data_inc => 1);
       IF txt_out > 1 THEN 
          print_cycle("BFM SET: ", adr, dat, "1111", "");
       END IF;
@@ -534,7 +532,8 @@ PACKAGE BODY terminal_pkg IS
       --! @param mem32 set to true is MEM32 space is targeted, otherwise MEM64 space is used
       --! @param mem_addr offset for internal memory space, start at x"0000_0000"
       --! @return databuf_out returns a dword_vector that contains all data read from BFM internal memory
-      get_bfm_memory(0, 1, FALSE, TRUE,  adr, databuf_out);
+      --get_bfm_memory(0, 1, FALSE, TRUE,  adr, databuf_out);
+      get_bfm_memory(nbr_of_dw => 1, mem_addr => adr, databuf_out => databuf_out);
       IF databuf_out(0) /= exp_dat THEN
          IF txt_out > 0 THEN 
             print_mtest("ERROR: ", adr, databuf_out(0), exp_dat, FALSE);
@@ -1004,7 +1003,7 @@ PACKAGE BODY terminal_pkg IS
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0003", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
       
-         wait_on_irq_assert(0, 0);
+         wait_on_irq_assert(0);
          IF irq_req(13) = '0' THEN  
             print_time("ERROR vme_dma_sram2a24d32: dma irq NOT asserted");
          END IF;
@@ -2313,7 +2312,7 @@ PACKAGE BODY terminal_pkg IS
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0003", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
       
-         wait_on_irq_assert(0, 0);
+         wait_on_irq_assert(0);
          IF irq_req(13) = '0' THEN  
             print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
          END IF;
@@ -2337,7 +2336,7 @@ PACKAGE BODY terminal_pkg IS
          err_sum := err_sum + loc_err;
          -- clear irq request
          wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0004", 1, en_msg_0, TRUE, "000001");
-         wait_on_irq_deassert(0, 0);
+         wait_on_irq_deassert(0);
          IF irq_req(13) = '1' THEN  
             print_time("ERROR vme_dma_sram2pci: dma irq asserted");
          END IF;
@@ -2387,13 +2386,13 @@ PACKAGE BODY terminal_pkg IS
    
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"2c", x"00000003", 1, en_msg_0, TRUE, "000001");
    
-      wait_on_irq_assert(0, 0);
+      wait_on_irq_assert(0);
       IF irq_req(13) = '0' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
       END IF;
       -- clear irq request
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0004", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0, 0);
+      wait_on_irq_deassert(0);
       IF irq_req(13) = '1' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq asserted");
       END IF;
@@ -2418,13 +2417,13 @@ PACKAGE BODY terminal_pkg IS
    
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"2c", x"00000003", 1, en_msg_0, TRUE, "000001");
    
-      wait_on_irq_assert(0, 0);
+      wait_on_irq_assert(0);
       IF irq_req(13) = '0' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
       END IF;
       -- clear irq request
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0004", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0, 0);
+      wait_on_irq_deassert(0);
       IF irq_req(13) = '1' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq asserted");
       END IF;
@@ -2518,7 +2517,7 @@ PACKAGE BODY terminal_pkg IS
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0003", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
       
-            wait_on_irq_assert(0, 0);
+            wait_on_irq_assert(0);
             IF irq_req(13) = '0' THEN  
                print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
             END IF;
@@ -2555,7 +2554,7 @@ PACKAGE BODY terminal_pkg IS
          err_sum := err_sum + loc_err;
          -- clear irq request
          wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0004", 1, en_msg_0, TRUE, "000001");
-            wait_on_irq_deassert(0, 0);
+            wait_on_irq_deassert(0);
             IF irq_req(13) = '1' THEN  
                print_time("ERROR vme_dma_sram2pci: dma irq asserted");
             END IF;
@@ -2649,7 +2648,7 @@ PACKAGE BODY terminal_pkg IS
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0003", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
       
-         wait_on_irq_assert(0, 0);
+         wait_on_irq_assert(0);
          IF irq_req(13) = '0' THEN  
             print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
          END IF;
@@ -2686,7 +2685,7 @@ PACKAGE BODY terminal_pkg IS
          err_sum := err_sum + loc_err;
          print(" clear irq request");
          wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0004", 1, en_msg_0, TRUE, "000001");
-         wait_on_irq_deassert(0, 0);
+         wait_on_irq_deassert(0);
          IF irq_req(13) = '0' THEN  
             print_time("ERROR vme_dma_sram2pci: dma irq asserted");
          END IF;
@@ -2723,7 +2722,7 @@ PACKAGE BODY terminal_pkg IS
 
       print (" VME A16/D16 single access");
       rd32(terminal_in_0, terminal_out_0, VME_A16D16 + x"0000_0000", x"0000_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
-      wait_on_irq_assert(0, 0);
+      wait_on_irq_assert(0);
       IF irq_req(irq_req_berr) = '0' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
       END IF;
@@ -2731,7 +2730,7 @@ PACKAGE BODY terminal_pkg IS
       rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0, 0);
+      wait_on_irq_deassert(0);
       IF irq_req(irq_req_berr) = '1' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq asserted");
       END IF;
@@ -2741,7 +2740,7 @@ PACKAGE BODY terminal_pkg IS
       
       print (" VME A24/D16 single access");
       rd32(terminal_in_0, terminal_out_0, VME_A24D16 + x"0000_0000", x"0000_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
-      wait_on_irq_assert(0, 0);
+      wait_on_irq_assert(0);
       IF irq_req(irq_req_berr) = '0' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
       END IF;
@@ -2749,7 +2748,7 @@ PACKAGE BODY terminal_pkg IS
       rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0, 0);
+      wait_on_irq_deassert(0);
       IF irq_req(irq_req_berr) = '1' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq asserted");
       END IF;
@@ -2758,7 +2757,7 @@ PACKAGE BODY terminal_pkg IS
 
       print (" VME A32/D32 single access");
       rd32(terminal_in_0, terminal_out_0, VME_A32D32 + x"0000_0000", x"ffff_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
-      wait_on_irq_assert(0, 0);
+      wait_on_irq_assert(0);
       IF irq_req(irq_req_berr) = '0' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
       END IF;
@@ -2766,7 +2765,7 @@ PACKAGE BODY terminal_pkg IS
       rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0, 0);
+      wait_on_irq_deassert(0);
       IF irq_req(irq_req_berr) = '1' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq asserted");
       END IF;
@@ -2789,7 +2788,7 @@ PACKAGE BODY terminal_pkg IS
       print(" start DMA transfer");
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0003", 1, en_msg_0, TRUE, "000001");  -- start transfer
 
-      wait_on_irq_assert(0, 0);
+      wait_on_irq_assert(0);
       IF irq_req(irq_req_dma) = '0' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
       END IF;
@@ -2800,7 +2799,7 @@ PACKAGE BODY terminal_pkg IS
       err_sum := err_sum + loc_err;
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_000c", 1, en_msg_0, TRUE, "000001");
       wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0, 0);
+      wait_on_irq_deassert(0);
       IF irq_req(irq_req_dma) = '1' THEN  
          print_time("ERROR vme_dma_sram2pci: dma irq asserted");
       END IF;
@@ -3226,7 +3225,7 @@ PACKAGE BODY terminal_pkg IS
    
       FOR i IN 1 TO 7 LOOP
          irq_vme_slv (vme_slv_in, vme_slv_out, i, x"00"+i);
-         wait_on_irq_assert(0, 0);
+         wait_on_irq_assert(0);
          IF irq_req(i+4) = '0' THEN    -- acfail + vme_irq is irq_req(11:5)
             print_time("ERROR vme_irq_rcv: wrong irq asserted");
          END IF;

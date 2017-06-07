@@ -66,7 +66,7 @@ USE ieee.std_logic_unsigned.ALL;
 USE work.print_pkg.all;
 USE work.terminal_pkg.ALL;
 USE work.vme_sim_pack.all;
-USE work.pcie_x1_pkg.ALL;
+USE work.pcie_sim_pkg.ALL;
 LIBRARY modelsim_lib;
 USE modelsim_lib.util.all;
 USE std.textio.all;
@@ -137,7 +137,9 @@ term_0: PROCESS
    --! @param mem64_addr start address for the BFM internal MEM64 space
    --! @param requester_id defines the requester ID that is used for every BFM transfer
    --! @param max_payloadsize defines the maximum payload size for every write request
+report "DEBUG: before init_bfm" severity note;
    init_bfm(0, x"0000_0000", SIM_BAR0, x"0000_0000_0000_0000", x"0000", 256);
+report "DEBUG: after init_bfm" severity note;
 
    --! procedure to configure the BFM
    --! @param bfm_inst_nbr number of the BFM instance that will be configured
@@ -151,7 +153,9 @@ term_0: PROCESS
    --! @param bar5 BAR5 settings
    --! @param cmd_status_reg settings for the command status register
    --! @param  ctrl_status_reg settings for the control status register
+report "DEBUG: before configure_bfm" severity note;
    configure_bfm (0, 1024, 1024, BAR0, BAR1, BAR2, BAR3, BAR4, BAR5, x"0010_0000", x"0000_01FF");
+report "DEBUG: after configure_bfm" severity note;
 
    WAIT FOR 3 us;
    
@@ -160,64 +164,66 @@ term_0: PROCESS
    print("                Start of Tests");
    print("***************************************************");
    -- Reset:
+report "DEBUG: starting vme_reset()" severity note;
    vme_reset(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, slot1, hreset_n, v2p_rstn, vb_sysresn, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
 
-   -- VME Buserror:
-   vme_buserror(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
+--   -- VME Buserror:
+--   vme_buserror(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
 
-   -- chameleon
-   cham_test(terminal_in_0, terminal_out_0, en_msg_0, err);    
-   terminal_err_0 <= terminal_err_0 + err;    
+--   -- chameleon
+--   cham_test(terminal_in_0, terminal_out_0, en_msg_0, err);    
+--   terminal_err_0 <= terminal_err_0 + err;    
 
    -- geographical address test
-   vme_ga_test(terminal_in_0, terminal_out_0, vme_ga, vme_gap, en_msg_0, err);    
-   terminal_err_0 <= terminal_err_0 + err;    
+--   vme_ga_test(terminal_in_0, terminal_out_0, vme_ga, vme_gap, en_msg_0, err);    
+--   terminal_err_0 <= terminal_err_0 + err;    
 
    -- VME Slave:
+report "DEBUG: starting vme_ga_test()" severity note;
    vme_slave_a242sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
 
-   vme_slave_a242pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-
-   vme_slave_a322sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-
-   vme_slave_a322pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-
-   vme_slave_a162regs(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-
-   -- VME Master:
-   vme_master_windows(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-
-   -- VME Interrupt Handler:
-   vme_irq_rcv(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, irq_req, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-
-   -- VME Interrupter:
-   vme_irq_trans(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-
-   -- VME DMA:
-   vme_dma_sram2a24d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-   vme_dma_sram2sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-   vme_dma_sram2a32d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-   vme_dma_sram2a32d64(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-   vme_dma_sram2pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-
-
-   vme_arbitration(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, hreset_n, slot1, en_clk, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
+--   vme_slave_a242pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--
+--   vme_slave_a322sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--
+--   vme_slave_a322pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--
+--   vme_slave_a162regs(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--
+--   -- VME Master:
+--   vme_master_windows(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--
+--   -- VME Interrupt Handler:
+--   vme_irq_rcv(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, irq_req, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--
+--   -- VME Interrupter:
+--   vme_irq_trans(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--
+--   -- VME DMA:
+--   vme_dma_sram2a24d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--   vme_dma_sram2sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--   vme_dma_sram2a32d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--   vme_dma_sram2a32d64(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--   vme_dma_sram2pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
+--
+--
+--   vme_arbitration(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, hreset_n, slot1, en_clk, en_msg_0, err);
+--   terminal_err_0 <= terminal_err_0 + err;
 
    WAIT FOR 1 us;
 
