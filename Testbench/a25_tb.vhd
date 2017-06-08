@@ -43,7 +43,7 @@ use work.pcie_sim_pkg.all;
 
 ENTITY a25_tb IS
    generic(
-      BFM_LANE_WIDTH : integer range 8 downto 0 := 4                            -- set configuration: 1=x1, 2=x2, 4=x4 and 8=x8
+      BFM_LANE_WIDTH : integer range 8 downto 0 := 1                            -- set configuration: 1=x1, 2=x2, 4=x4 and 8=x8
    );
 END a25_tb;
 

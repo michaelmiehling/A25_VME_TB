@@ -772,7 +772,8 @@ pcie: ip_16z091_01_top
       SIMULATION           => '1',
       FPGA_FAMILY          => CYCLONE4,
       IRQ_WIDTH            => 13,
-      USE_LANES            => "001",			-- x1 for simulation
+      USE_LANES            => "001",-- x1 for simulation
+      --USE_LANES            => "100",-- x1 for simulation
       NR_OF_WB_SLAVES      => NR_OF_WB_SLAVES,
       NR_OF_BARS_USED      => 5,
       VENDOR_ID            => 16#1A88#,

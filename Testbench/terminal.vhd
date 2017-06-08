@@ -113,7 +113,7 @@ term_0: PROCESS
    en_clk <= TRUE;
    vme_ga <= (OTHERS => '0');
    vme_gap <= '0';
-   init_signal_spy("/a25_tb/a25/pcie/irq_req","irq_req",1,1);
+   --init_signal_spy("/a25_tb/a25/pcie/irq_req","irq_req",1,1);
    init_signal_spy("/a25_tb/vb_sysresn","vb_sysresn",1,1);
    init(terminal_out_0);
    init(terminal_out_1);
@@ -123,8 +123,8 @@ term_0: PROCESS
    -- shorten reset time on vme bus
    signal_force("/a25_tb/a25/vme/vmectrl/bustimer/pre_cnt_max_sig", "0000001000", 0 ns, freeze, -1 ns, 1);
    signal_force("/a25_tb/a25/vme/vmectrl/bustimer/main_cnt_max_sig", "000000000000011", 0 ns, freeze, -1 ns, 1);
-   signal_force("/a25_tb/a25/pcie/test_pcie_core", "0000000000000001", 0 ns, freeze, -1 ns, 1);
-   signal_force("/a25_tb/a25/pcie/test_rs_serdes", "1", 0 ns, freeze, -1 ns, 1);
+   --signal_force("/a25_tb/a25/pcie/test_pcie_core", "0000000000000001", 0 ns, freeze, -1 ns, 1);
+   --signal_force("/a25_tb/a25/pcie/test_rs_serdes", "1", 0 ns, freeze, -1 ns, 1);
    slot1 <= TRUE;
    WAIT FOR 100 ns;
    hreset_n <= '1';
@@ -154,6 +154,7 @@ report "DEBUG: after init_bfm" severity note;
    --! @param cmd_status_reg settings for the command status register
    --! @param  ctrl_status_reg settings for the control status register
 report "DEBUG: before configure_bfm" severity note;
+report "STOP" severity failure;
    configure_bfm (0, 1024, 1024, BAR0, BAR1, BAR2, BAR3, BAR4, BAR5, x"0010_0000", x"0000_01FF");
 report "DEBUG: after configure_bfm" severity note;
 

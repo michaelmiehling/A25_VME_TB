@@ -140,6 +140,7 @@ if {![file isdirectory "$libdir/work/fpga_pkg_2"]} {
    vcom -work work -2008 ../Altera_src/altpcietb_bfm_configure.vhd
    vcom -work work -2008 ../Altera_src/altpcietb_pipe_xtx2yrx.vhd
    vcom -work work -2008 ../Altera_src/altpcietb_pipe_phy.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_ltssm_mon.vhd
    vcom -work work -2008 ../Altera_src/altpcietb_bfm_rp_top_x8_pipen1b.vhd
    vcom -work work -2008 ../Altera_src/altpcietb_bfm_rpvar_64b_x8_gen1_pipen1b.vho
    vcom -work work -2008 ../Altera_src/altpcietb_bfm_rpvar_64b_x8_gen2_pipen1b.vho
@@ -220,7 +221,7 @@ vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_rs_ser
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_100_250.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_125_250.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/Hard_IP_x1_core.vho
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Simulation/Hard_IP_x4_core.vho
+#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Simulation/Hard_IP_x4_core.vho
 
 
 
@@ -247,8 +248,8 @@ vcom -2002 ../../16a025-00_src/16z091-01_src/Source/ip_16z091_01.vhd
 vcom -2002 ../../16a025-00_src/Source/z091_01_wb_adr_dec.vhd
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1_serdes.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4_serdes.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4.vhd 
+#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4_serdes.vhd 
+#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4.vhd 
 vcom -2008 ../Testbench/ip_16z091_01_top_sim.vhd
 
 
@@ -300,15 +301,34 @@ vsim -t fs  \
 -l test_report.txt\
 work.a25_tb_conf 
 
-add wave sim:/a25_tb/a25/*
-add wave sim:/a25_tb/a25/vme/vmedma/*
-add wave sim:/a25_tb/a25/vme/vmedma/dma_mstr/*
-add wave sim:/a25_tb/a25/vme/vmectrl/du/*
-add wave sim:/a25_tb/a25/vme/vmectrl/au/*
-add wave sim:/a25_tb/a25/vme/vmectrl/bustimer/*
-add wave sim:/a25_tb/a25/vme/vmectrl/master/*
-add wave sim:/a25_tb/a25/vme/vmectrl/requester/*
-add wave sim:/a25_tb/a25/vme/vmectrl/arbiter/*
-add wave sim:/a25_tb/vme_bus/*
-add wave sim:/a25_tb/vme_bus/vmesimmstr/*
-run -all
+#add wave sim:/a25_tb/a25/*
+#add wave sim:/a25_tb/a25/vme/vmedma/*
+#add wave sim:/a25_tb/a25/vme/vmedma/dma_mstr/*
+#add wave sim:/a25_tb/a25/vme/vmectrl/du/*
+#add wave sim:/a25_tb/a25/vme/vmectrl/au/*
+#add wave sim:/a25_tb/a25/vme/vmectrl/bustimer/*
+#add wave sim:/a25_tb/a25/vme/vmectrl/master/*
+#add wave sim:/a25_tb/a25/vme/vmectrl/requester/*
+#add wave sim:/a25_tb/a25/vme/vmectrl/arbiter/*
+#add wave sim:/a25_tb/vme_bus/*
+#add wave sim:/a25_tb/vme_bus/vmesimmstr/*
+
+#do wave.do
+add wave -divider {Hard IP}
+add wave \
+   sim:/a25_tb/a25/pcie/ext_rst_n
+
+add wave -divider {BFM}
+add wave \
+   sim:/a25_tb/pcie_sim_inst/pcie_rstn_i
+
+
+# next 5 lines are for debugging only, remove later
+variable NumericStdNoWarnings 1
+variable StdArithNoWarnings 1
+run 50 ns
+variable NumericStdNoWarnings 0
+variable StdArithNoWarnings 0
+
+run 300 ns
+#run -all
