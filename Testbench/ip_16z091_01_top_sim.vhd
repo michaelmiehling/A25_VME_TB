@@ -158,6 +158,7 @@ entity ip_16z091_01_top is
       ep_txelecidle_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
       ep_txdetectrx_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
       ep_rxpolarity_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_ltssm_o         : out std_logic_vector(4 downto 0);
 
       -- debug port
       gp_debug_port      : out std_logic_vector(GP_DEBUG_PORT_WIDTH -1 downto 0); -- general purpose debug port
@@ -249,8 +250,12 @@ signal rst_int      : std_logic;
 signal core_clk_int : std_logic;
 signal crst_int     : std_logic;
 signal srst_int     : std_logic;
+signal srstn_int    : std_logic;
 signal npor_int     : std_logic;
 signal clk250_int   : std_logic;
+signal clk250_int_1delta_delay : std_logic;
+signal clk250_int_2delta_delay : std_logic;
+signal clk250_int_3delta_delay : std_logic;
 
 signal rx_st_data0_int        : std_logic_vector(63 downto 0);
 signal rx_st_err0_int         : std_logic;
@@ -325,7 +330,10 @@ signal int_wb_int_num         : std_logic_vector(4 downto 0);
 signal int_wb_int_ack         : std_logic;
 signal int_wb_int_num_allowed : std_logic_vector(5 downto 0);
 
-signal int_ltssm              : std_logic_vector(4 downto 0);
+signal int_ltssm               : std_logic_vector(4 downto 0);
+signal reconfig_clk_locked_int : std_logic;
+signal reconfig_clk_int        : std_logic;
+signal fixedclk_serdes_int     : std_logic;
 
 -------------------------------------------------------------------------------
 
@@ -693,7 +701,102 @@ COMPONENT Hard_IP_x4 is
                  signal txelecidle2_ext : OUT STD_LOGIC;
                  signal txelecidle3_ext : OUT STD_LOGIC
               );
-end COMPONENT Hard_IP_x4;
+end component hard_ip_x4;
+
+
+component Hard_IP_x1_plus is 
+   port (
+   -- inputs:
+      signal app_int_sts         : in std_logic;
+      signal app_msi_num         : in std_logic_vector (4 downto 0);
+      signal app_msi_req         : in std_logic;
+      signal app_msi_tc          : in std_logic_vector (2 downto 0);
+      signal cpl_err             : in std_logic_vector (6 downto 0);
+      signal cpl_pending         : in std_logic;
+      signal fixedclk_serdes     : in std_logic;
+      signal lmi_addr            : in std_logic_vector (11 downto 0);
+      signal lmi_din             : in std_logic_vector (31 downto 0);
+      signal lmi_rden            : in std_logic;
+      signal lmi_wren            : in std_logic;
+      signal local_rstn          : in std_logic;
+      signal pcie_rstn           : in std_logic;
+      signal pclk_in             : in std_logic;
+      signal pex_msi_num         : in std_logic_vector (4 downto 0);
+      signal phystatus_ext       : in std_logic;
+      signal pipe_mode           : in std_logic := std_logic'('0');
+      signal pld_clk             : in std_logic;
+      signal pm_auxpwr           : in std_logic;
+      signal pm_data             : in std_logic_vector (9 downto 0);
+      signal pm_event            : in std_logic;
+      signal pme_to_cr           : in std_logic;
+      signal reconfig_clk        : in std_logic;
+      signal reconfig_clk_locked : in std_logic;
+      signal refclk              : in std_logic;
+      signal rx_in0              : in std_logic := std_logic'('0');
+      signal rx_st_mask0         : in std_logic;
+      signal rx_st_ready0        : in std_logic;
+      signal rxdata0_ext         : in std_logic_vector (7 downto 0);
+      signal rxdatak0_ext        : in std_logic;
+      signal rxelecidle0_ext     : in std_logic;
+      signal rxstatus0_ext       : in std_logic_vector (2 downto 0);
+      signal rxvalid0_ext        : in std_logic;
+      signal test_in             : in std_logic_vector (39 downto 0);
+      signal tx_st_data0         : in std_logic_vector (63 downto 0);
+      signal tx_st_eop0          : in std_logic;
+      signal tx_st_err0          : in std_logic;
+      signal tx_st_sop0          : in std_logic;
+      signal tx_st_valid0        : in std_logic;
+
+   -- outputs:
+      signal app_clk         : out std_logic;
+      signal app_int_ack     : out std_logic;
+      signal app_msi_ack     : out std_logic;
+      signal clk250_out      : out std_logic;
+      signal clk500_out      : out std_logic;
+      signal core_clk_out    : out std_logic;
+      signal lane_act        : out std_logic_vector (3 downto 0);
+      signal lmi_ack         : out std_logic;
+      signal lmi_dout        : out std_logic_vector (31 downto 0);
+      signal ltssm           : out std_logic_vector (4 downto 0);
+      signal pme_to_sr       : out std_logic;
+      signal powerdown_ext   : out std_logic_vector (1 downto 0);
+      signal rate_ext        : out std_logic;
+      signal rc_pll_locked   : out std_logic;
+      signal rx_st_bardec0   : out std_logic_vector (7 downto 0);
+      signal rx_st_be0       : out std_logic_vector (7 downto 0);
+      signal rx_st_data0     : out std_logic_vector (63 downto 0);
+      signal rx_st_eop0      : out std_logic;
+      signal rx_st_err0      : out std_logic;
+      signal rx_st_sop0      : out std_logic;
+      signal rx_st_valid0    : out std_logic;
+      signal rxpolarity0_ext : out std_logic;
+      signal srstn           : out std_logic;
+      signal test_out        : out std_logic_vector (8 downto 0);
+      signal tl_cfg_add      : out std_logic_vector (3 downto 0);
+      signal tl_cfg_ctl      : out std_logic_vector (31 downto 0);
+      signal tl_cfg_ctl_wr   : out std_logic;
+      signal tl_cfg_sts      : out std_logic_vector (52 downto 0);
+      signal tl_cfg_sts_wr   : out std_logic;
+      signal tx_cred0        : out std_logic_vector (35 downto 0);
+      signal tx_fifo_empty0  : out std_logic;
+      signal tx_out0         : out std_logic;
+      signal tx_st_ready0    : out std_logic;
+      signal txcompl0_ext    : out std_logic;
+      signal txdata0_ext     : out std_logic_vector (7 downto 0);
+      signal txdatak0_ext    : out std_logic;
+      signal txdetectrx_ext  : out std_logic;
+      signal txelecidle0_ext : OUT STD_LOGIC
+   );
+end component Hard_IP_x1_plus;
+
+component altpcierd_reconfig_clk_pll is
+   port (
+      signal inclk0 : in  std_logic;
+      signal locked : out std_logic;
+      signal c0     : out std_logic;
+      signal c1     : out std_logic
+   );
+end component altpcierd_reconfig_clk_pll;
 
 --component z091_01_wb_adr_dec
 --   generic(
@@ -747,8 +850,11 @@ begin
    --wbm_cyc_o       <= wbm_cyc_o_int;     
    npor_int          <= ext_rst_n and '1';
    pll_powerdown_int <= not npor_int;
-   core_clk_int      <= clk250_int;
+   --core_clk_int      <= clk250_int;
    ep_clk250_o       <= clk250_int;
+   clk250_int_1delta_delay <= clk250_int;
+   clk250_int_2delta_delay <= clk250_int_1delta_delay;
+   clk250_int_3delta_delay <= clk250_int_2delta_delay;
 
    ----------------------------------
    -- assign debug port if ltssm is
@@ -756,6 +862,7 @@ begin
    ----------------------------------
    link_train_active <= '0' when int_ltssm = "01111" else
                         '1';
+   ep_ltssm_o <= int_ltssm;
 --   -------------------------------------------------
 --   -- work around for Altera receiver detect issue
 --   -------------------------------------------------
@@ -797,7 +904,7 @@ begin
       )
       port map(
          clk                     => core_clk_int,
-         rst                     => rst_int,
+         rst                     => srst_int, --rst_int,
          clk_500                 => clk_500,
          wb_clk                  => wb_clk,
          wb_rst                  => wb_rst,
@@ -1199,37 +1306,40 @@ begin
 --   end generate gen_x2;
    
    gen_x1: if USE_LANES = "001" generate
-      Hard_IP_x1_comp : Hard_IP_x1
+      Hard_IP_x1_comp : Hard_IP_x1_plus
       port map(
          app_int_sts          => app_int_sts_int,
          app_msi_num          => app_msi_num_int,
          app_msi_req          => app_msi_req_int,
          app_msi_tc           => app_msi_tc_int,
-         busy_altgxb_reconfig => reconf_busy,
-         cal_blk_clk          => clk_50,
+         --busy_altgxb_reconfig => reconf_busy,
+         --cal_blk_clk          => clk_50,
          cpl_err              => cpl_err_int,
          cpl_pending          => cpl_pending_int,
-         crst                 => crst_int,
-         fixedclk_serdes      => clk_125,
-         gxb_powerdown        => '0',
-         hpg_ctrler           => (others => '0'),
+         --crst                 => crst_int,
+         fixedclk_serdes      => clk_125, --fixedclk_serdes_int, --clk_125,
+         --gxb_powerdown        => '0',
+         --hpg_ctrler           => (others => '0'),
          lmi_addr             => (others => '0'),
          lmi_din              => (others => '0'),
          lmi_rden             => '0',
          lmi_wren             => '0',
-         npor                 => npor_int,
-         pclk_in              => core_clk_int,
+         local_rstn           => '1',
+         --npor                 => npor_int,
+         pcie_rstn            => ext_rst_n,
+         pclk_in              => clk250_int, --clk250_int_3delta_delay, --clk250_int, --core_clk_int,
          pex_msi_num          => pex_msi_num_int,
          phystatus_ext        => ep_phystatus_i(0),
          pipe_mode            => pipe_mode_int,
          pld_clk              => core_clk_int,
-         pll_powerdown        => pll_powerdown_int,
+         --pll_powerdown        => pll_powerdown_int,
          pm_auxpwr            => '0',
          pm_data              => (others => '0'),
          pm_event             => '0',
          pme_to_cr            => pme_to_cr_int,
-         reconfig_clk         => clk_50,
-         reconfig_togxb       => reconfig_togxb_int,
+         reconfig_clk         => reconfig_clk_int, --clk_50,
+         reconfig_clk_locked  => reconfig_clk_locked_int,
+         --reconfig_togxb       => reconfig_togxb_int,
          refclk               => ref_clk,
          rx_in0               => rx_0,
          rx_st_mask0          => rx_st_mask0_int,
@@ -1239,7 +1349,7 @@ begin
          rxelecidle0_ext      => ep_rxelecidle_i(0),
          rxstatus0_ext        => ep_rxstatus_i(2 downto 0),
          rxvalid0_ext         => ep_rxvalid_i(0),
-         srst                 => srst_int,
+         --srst                 => srst_int,
          test_in              => test_in_int,
          tx_st_data0          => tx_st_data0_int,
          tx_st_eop0           => tx_st_eop0_int,
@@ -1253,28 +1363,28 @@ begin
          app_msi_ack          => app_msi_ack_int,
          clk250_out           => clk250_int, --ep_clk250_o,
          clk500_out           => ep_clk500_o,
-         core_clk_out         => open, --core_clk_int,
-         derr_cor_ext_rcv0    => derr_cor_ext_rcv_int(0),
-         derr_cor_ext_rpl     => derr_cor_ext_rpl_int,
-         derr_rpl             => derr_rpl_int,
-         dlup_exit            => dlup_exit,
-         hotrst_exit          => hotrst_exit,
-         ko_cpl_spc_vc0       => open,
-         l2_exit              => l2_exit,
+         core_clk_out         => core_clk_int,
+         --derr_cor_ext_rcv0    => derr_cor_ext_rcv_int(0),
+         --derr_cor_ext_rpl     => derr_cor_ext_rpl_int,
+         --derr_rpl             => derr_rpl_int,
+         --dlup_exit            => dlup_exit,
+         --hotrst_exit          => hotrst_exit,
+         --ko_cpl_spc_vc0       => open,
+         --l2_exit              => l2_exit,
          lane_act             => open,
          lmi_ack              => open,
          lmi_dout             => open,
          ltssm                => int_ltssm,
          pme_to_sr            => pme_to_sr_int,
          powerdown_ext        => powerdown_int, --ep_powerdown_ext_o(1 downto 0),
-         r2c_err0             => r2c_err0_int,
+         --r2c_err0             => r2c_err0_int,
          rate_ext             => ep_rate_ext_o,
          rc_pll_locked        => open,
-         rc_rx_digitalreset   => open,
-         reconfig_fromgxb     => reconfig_fromgxb_int,
-         reset_status         => open,
-         rx_fifo_empty0       => open,
-         rx_fifo_full0        => open,
+         --rc_rx_digitalreset   => open,
+         --reconfig_fromgxb     => reconfig_fromgxb_int,
+         --reset_status         => open,
+         --rx_fifo_empty0       => open,
+         --rx_fifo_full0        => open,
          rx_st_bardec0        => rx_st_bardec0_int,
          rx_st_be0            => rx_st_be0_int,
          rx_st_data0          => rx_st_data0_int,
@@ -1283,7 +1393,8 @@ begin
          rx_st_sop0           => rx_st_sop0_int,
          rx_st_valid0         => rx_st_valid0_int,
          rxpolarity0_ext      => ep_rxpolarity_o(0),
-         suc_spd_neg          => open,
+         srstn                => srstn_int,
+         --suc_spd_neg          => open,
          test_out             => open,
          tl_cfg_add           => tl_cfg_add_int,
          tl_cfg_ctl           => tl_cfg_ctl_int,
@@ -1292,9 +1403,9 @@ begin
          tl_cfg_sts_wr        => tl_cfg_sts_wr_int,
          tx_cred0             => open,
          tx_fifo_empty0       => tx_fifo_empty0_int,
-         tx_fifo_full0        => tx_fifo_full0_int,
-         tx_fifo_rdptr0       => tx_fifo_rdptr0_int,
-         tx_fifo_wrptr0       => tx_fifo_wrptr0_int,
+         --tx_fifo_full0        => tx_fifo_full0_int,
+         --tx_fifo_rdptr0       => tx_fifo_rdptr0_int,
+         --tx_fifo_wrptr0       => tx_fifo_wrptr0_int,
          tx_out0              => tx_0,
          tx_st_ready0         => tx_st_ready0_int,
          txcompl0_ext         => ep_txcompl_o(0),
@@ -1306,10 +1417,30 @@ begin
       ep_txdetectrx_o(0)             <= txdetectrx_int;
       ep_powerdown_ext_o(1 downto 0) <= powerdown_int;
 
+      -- manage removed signals
+      tx_fifo_full0_int       <= '0';
+      tx_fifo_rdptr0_int      <= (others => '0');
+      tx_fifo_wrptr0_int      <= (others => '0');
+      r2c_err0_int            <= '0';
+      derr_cor_ext_rcv_int(0) <= '0';
+      derr_cor_ext_rpl_int    <= '0';
+      derr_rpl_int            <= '0';
+      dlup_exit               <= '0';
+      hotrst_exit             <= '0';
+      l2_exit                 <= '0';
+
       tx_1 <= '1';
       tx_2 <= '1';
       tx_3 <= '1';
    end generate gen_x1;
+   
+   reconfig_pll : altpcierd_reconfig_clk_pll
+      port map(
+         inclk0 => ref_clk,
+         locked => reconfig_clk_locked_int,
+         c0     => reconfig_clk_int,
+         c1     => fixedclk_serdes_int
+      );
    
    --z091_01_wb_adr_dec_comp : z091_01_wb_adr_dec
    --   generic map(
@@ -1393,7 +1524,8 @@ begin
    -- reset and clock logic
    rst_int  <= not ext_rst_n;
    crst_int <= rst_int or rst_cwh;
-   srst_int <= rst_int or rst_cwh;
+   --srst_int <= rst_int or rst_cwh;
+   srst_int <= not srstn_int;
    
 -------------------------------------------------------------------------------
 end architecture ip_16z091_01_top_arch;

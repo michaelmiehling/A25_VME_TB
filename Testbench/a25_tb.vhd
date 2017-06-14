@@ -144,7 +144,8 @@ PORT (
    ep_txcompl_o       : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
    ep_txelecidle_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
    ep_txdetectrx_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
-   ep_rxpolarity_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0)     -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_rxpolarity_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_ltssm_o         : out std_logic_vector(4 downto 0)
    );
 END COMPONENT;
 
@@ -302,6 +303,7 @@ component pcie_sim
       ep_txelecidle_i    : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
       ep_txdetectrx_i    : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
       ep_rxpolarity_i    : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_ltssm_i         : in  std_logic_vector(4 downto 0);
 
       ep_rxvalid_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);       -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
       ep_rxstatus_o   : out std_logic_vector(3*BFM_LANE_WIDTH -1 downto 0);     -- 3bits per lane, [2:0]=lane0, [5:3]=lane1 etc.
@@ -469,6 +471,7 @@ end component;
    signal ep_txelecidle_int    : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
    signal ep_txdetectrx_int    : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
    signal ep_rxpolarity_int    : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+   signal ep_ltssm_int         : std_logic_vector(4 downto 0);
 
 BEGIN
    -- high active signals on A25
@@ -579,7 +582,8 @@ PORT MAP (
    ep_txcompl_o       => ep_txcompl_int,
    ep_txelecidle_o    => ep_txelecidle_int,
    ep_txdetectrx_o    => ep_txdetectrx_int,
-   ep_rxpolarity_o    => ep_rxpolarity_int
+   ep_rxpolarity_o    => ep_rxpolarity_int,
+   ep_ltssm_o         => ep_ltssm_int
    );
 
    clk_16mhz_int <= NOT clk_16mhz_int AFTER 31.25 ns;
@@ -613,6 +617,7 @@ pcie_sim_inst: pcie_sim
       ep_txelecidle_i    => ep_txelecidle_int,
       ep_txdetectrx_i    => ep_txdetectrx_int,
       ep_rxpolarity_i    => ep_rxpolarity_int,
+      ep_ltssm_i         => ep_ltssm_int,
 
       ep_rxvalid_o    => ep_rxvalid_int,
       ep_rxstatus_o   => ep_rxstatus_int,

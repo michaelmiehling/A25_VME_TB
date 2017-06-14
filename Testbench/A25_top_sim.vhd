@@ -146,7 +146,8 @@ PORT (
    ep_txcompl_o       : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
    ep_txelecidle_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
    ep_txdetectrx_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
-   ep_rxpolarity_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0)     -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_rxpolarity_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_ltssm_o         : out std_logic_vector(4 downto 0)
    );
 END A25_top;
 
@@ -264,6 +265,7 @@ COMPONENT ip_16z091_01_top
       ep_txelecidle_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
       ep_txdetectrx_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
       ep_rxpolarity_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_ltssm_o         : out std_logic_vector(4 downto 0);
 
       -- debug port
       gp_debug_port      : out std_logic_vector(GP_DEBUG_PORT_WIDTH -1 downto 0); -- general purpose debug port
@@ -878,6 +880,7 @@ pcie: ip_16z091_01_top
       ep_txelecidle_o    => ep_txelecidle_o,
       ep_txdetectrx_o    => ep_txdetectrx_o,
       ep_rxpolarity_o    => ep_rxpolarity_o,
+      ep_ltssm_o         => ep_ltssm_o,
 
       gp_debug_port      => open,
       link_train_active  => link_train_active

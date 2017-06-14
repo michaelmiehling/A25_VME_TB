@@ -154,7 +154,6 @@ report "DEBUG: after init_bfm" severity note;
    --! @param cmd_status_reg settings for the command status register
    --! @param  ctrl_status_reg settings for the control status register
 report "DEBUG: before configure_bfm" severity note;
-report "STOP" severity failure;
    configure_bfm (0, 1024, 1024, BAR0, BAR1, BAR2, BAR3, BAR4, BAR5, x"0010_0000", x"0000_01FF");
 report "DEBUG: after configure_bfm" severity note;
 
@@ -168,6 +167,7 @@ report "DEBUG: after configure_bfm" severity note;
 report "DEBUG: starting vme_reset()" severity note;
    vme_reset(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, slot1, hreset_n, v2p_rstn, vb_sysresn, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
+report "STOP" severity failure;
 
 --   -- VME Buserror:
 --   vme_buserror(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);

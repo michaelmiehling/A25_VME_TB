@@ -1103,6 +1103,7 @@ PACKAGE BODY terminal_pkg IS
       print_time("check result of slot1 detection");
       rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0018", x"00000000", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
+report "DEBUG - STOP in terminal_pkg line 1106" severity failure;
       
       print_time(" vb_sysresn inactive?");
       IF vb_sysresn = '0' THEN

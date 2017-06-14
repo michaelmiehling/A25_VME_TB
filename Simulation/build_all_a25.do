@@ -1,3 +1,4 @@
+onerror {break}
 ## Altera Simulation Libraries:
 ##
 # set paths for library compilation out of quartus files
@@ -217,10 +218,21 @@ vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/vme_wbs.vhd
 vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/wbb2vme_top.vhd
 
 # pcie core simulation files
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_rs_serdes.vhd
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_100_250.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_125_250.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/Hard_IP_x1_core.vho
+#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_rs_serdes.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_rs_serdes.vhd
+#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_100_250.vhd
+#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_125_250.vhd
+
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcierd_reconfig_clk_pll.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_125_250.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_125.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_250.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_reconfig_4sgx.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_reconfig_3cgx.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/chaining_dma/Hard_IP_x1_plus.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/chaining_dma/Hard_IP_x1_rs_hip.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_core.vho
+#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/Hard_IP_x1_core.vho
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Simulation/Hard_IP_x4_core.vho
 
 
@@ -246,8 +258,10 @@ vcom -2002 ../../16a025-00_src/16z091-01_src/Source/interrupt_core.vhd
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/interrupt_wb.vhd 
 vcom -2002 ../../16a025-00_src/16z091-01_src/Source/ip_16z091_01.vhd 
 vcom -2002 ../../16a025-00_src/Source/z091_01_wb_adr_dec.vhd
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1_serdes.vhd 
-vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1.vhd 
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_serdes.vhd 
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1.vhd 
+#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1_serdes.vhd 
+#vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Hard_IP_x1.vhd 
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4_serdes.vhd 
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Hard_IP_x4.vhd 
 vcom -2008 ../Testbench/ip_16z091_01_top_sim.vhd
@@ -297,9 +311,11 @@ vsim -t fs  \
 -L cycloneiv_hssi \
 -L stratixiigx_hssi \
 -L pciebfm_lib \
--voptargs=+acc \
--l test_report.txt\
+-l test_report.txt \
+-novopt \
 work.a25_tb_conf 
+
+#-voptargs=+acc \
 
 #add wave sim:/a25_tb/a25/*
 #add wave sim:/a25_tb/a25/vme/vmedma/*
@@ -313,22 +329,48 @@ work.a25_tb_conf
 #add wave sim:/a25_tb/vme_bus/*
 #add wave sim:/a25_tb/vme_bus/vmesimmstr/*
 
-#do wave.do
+#log -r /*
 add wave -divider {Hard IP}
 add wave \
-   sim:/a25_tb/a25/pcie/ext_rst_n
+   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/pclk_in \
+   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/clk250_out \
+   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/pld_clk
+
+add wave -divider {PCIe EP}
+add wave \
+   /a25_tb/a25/pcie/clk250_int \
+   /a25_tb/a25/pcie/clk250_int_1delta_delay \
+   /a25_tb/a25/pcie/clk250_int_2delta_delay \
+   /a25_tb/a25/pcie/clk250_int_3delta_delay
+
+add wave -group {all EP ports}\
+   sim:/a25_tb/a25/pcie/*
+
+add wave -divider {LTSSM mon}
+add wave /a25_tb/pcie_sim_inst/ltssm_mon/*
 
 add wave -divider {BFM}
 add wave \
-   sim:/a25_tb/pcie_sim_inst/pcie_rstn_i
+   /a25_tb/pcie_sim_inst/ep_clk250_i \
+   /a25_tb/pcie_sim_inst/bfm_inst/rp/pclk_in
 
+add wave -group {all BFM ports} \
+   sim:/a25_tb/pcie_sim_inst/bfm_inst/crst \
+   sim:/a25_tb/pcie_sim_inst/bfm_inst/srst \
+   sim:/a25_tb/pcie_sim_inst/*
+
+add wave -divider {testbench}
+add wave \
+   /a25_tb/ep_clk250_int
+
+add wave -divider {DEBUG}
 
 # next 5 lines are for debugging only, remove later
 variable NumericStdNoWarnings 1
 variable StdArithNoWarnings 1
-run 50 ns
-variable NumericStdNoWarnings 0
-variable StdArithNoWarnings 0
+#run 50 ns
+#variable NumericStdNoWarnings 0
+#variable StdArithNoWarnings 0
 
-run 300 ns
-#run -all
+#run 16 us
+ run -all
