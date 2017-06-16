@@ -471,7 +471,20 @@ PACKAGE terminal_pkg IS
          txt_out  : integer;                                -- 0= no message, 1=only errors, 2=all
          err      : OUT integer                             
          );
-	PROCEDURE print_err(s: in string; err: in integer);
+   PROCEDURE print_err(s: in string; err: in integer);
+
+   procedure configure_bfm(
+      signal terminal_in  : in terminal_in_type;
+      signal terminal_out : out terminal_out_type;
+      bar0_addr : std_logic_vector(31 downto 0);
+      bar1_addr : std_logic_vector(31 downto 0);
+      bar2_addr : std_logic_vector(31 downto 0);
+      bar3_addr : std_logic_vector(31 downto 0);
+      bar4_addr : std_logic_vector(31 downto 0);
+      bar5_addr : std_logic_vector(31 downto 0);
+      txt_out   : integer
+   );
+
 END terminal_pkg;
 
 PACKAGE BODY terminal_pkg IS 
@@ -1097,13 +1110,13 @@ PACKAGE BODY terminal_pkg IS
          END IF;
          WAIT FOR 1 us;
          init_bfm(0, x"0000_0000", SIM_BAR0, x"0000_0000_0000_0000", x"0000", 256);
-         configure_bfm (0, 1024, 1024, BAR0, BAR1, BAR2, BAR3, BAR4, BAR5, x"0010_0000", x"0000_01FF");
+         configure_bfm(terminal_in => terminal_in_0, terminal_out => terminal_out_0, bar0_addr => BAR0, bar1_addr => BAR1, bar2_addr => BAR2, bar3_addr => BAR3, bar4_addr => BAR4, bar5_addr => BAR5, txt_out => en_msg_0);
          WAIT FOR 3 us;
       
       print_time("check result of slot1 detection");
       rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0018", x"00000000", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
-report "DEBUG - STOP in terminal_pkg line 1106" severity failure;
+report "DEBUG - terminal_pkg line 1119 - STOP SIM" severity failure;
       
       print_time(" vb_sysresn inactive?");
       IF vb_sysresn = '0' THEN
@@ -1159,7 +1172,7 @@ report "DEBUG - STOP in terminal_pkg line 1106" severity failure;
          END IF;
          WAIT FOR 1 us;
          init_bfm(0, x"0000_0000", SIM_BAR0, x"0000_0000_0000_0000", x"0000", 256);
-         configure_bfm (0, 1024, 1024, BAR0, BAR1, BAR2, BAR3, BAR4, BAR5, x"0010_0000", x"0000_01FF");
+         configure_bfm(terminal_in => terminal_in_0, terminal_out => terminal_out_0, bar0_addr => BAR0, bar1_addr => BAR1, bar2_addr => BAR2, bar3_addr => BAR3, bar4_addr => BAR4, bar5_addr => BAR5, txt_out => en_msg_0);
          WAIT FOR 3 us;
       
       print_time("check result of slot1 detection");
@@ -2988,7 +3001,7 @@ report "DEBUG - STOP in terminal_pkg line 1106" severity failure;
       --! @param bar5 BAR5 settings
       --! @param cmd_status_reg settings for the command status register
       --! @param  ctrl_status_reg settings for the control status register
-      configure_bfm (0, 1024, 1024, BAR0, BAR1, BAR2, BAR3, BAR4, BAR5, x"0010_0000", x"0000_01FF");
+      configure_bfm(terminal_in => terminal_in_0, terminal_out => terminal_out_0, bar0_addr => BAR0, bar1_addr => BAR1, bar2_addr => BAR2, bar3_addr => BAR3, bar4_addr => BAR4, bar5_addr => BAR5, txt_out => en_msg_0);
       
       WAIT FOR 3 us;
       wr8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0002", 1, en_msg_0, TRUE, "000001");  -- set RWD
@@ -3025,7 +3038,7 @@ report "DEBUG - STOP in terminal_pkg line 1106" severity failure;
       --! @param bar5 BAR5 settings
       --! @param cmd_status_reg settings for the command status register
       --! @param  ctrl_status_reg settings for the control status register
-      configure_bfm (0, 1024, 1024, BAR0, BAR1, BAR2, BAR3, BAR4, BAR5, x"0010_0000", x"0000_01FF");
+      configure_bfm(terminal_in => terminal_in_0, terminal_out => terminal_out_0, bar0_addr => BAR0, bar1_addr => BAR1, bar2_addr => BAR2, bar3_addr => BAR3, bar4_addr => BAR4, bar5_addr => BAR5, txt_out => en_msg_0);
       WAIT FOR 3 us;
       wr8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0002", 1, en_msg_0, TRUE, "000001");  -- set RWD
       vme_arbiter(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, loc_err);
@@ -3062,7 +3075,7 @@ report "DEBUG - STOP in terminal_pkg line 1106" severity failure;
       --! @param bar5 BAR5 settings
       --! @param cmd_status_reg settings for the command status register
       --! @param  ctrl_status_reg settings for the control status register
-      configure_bfm (0, 1024, 1024, BAR0, BAR1, BAR2, BAR3, BAR4, BAR5, x"0010_0000", x"0000_01FF");
+      configure_bfm(terminal_in => terminal_in_0, terminal_out => terminal_out_0, bar0_addr => BAR0, bar1_addr => BAR1, bar2_addr => BAR2, bar3_addr => BAR3, bar4_addr => BAR4, bar5_addr => BAR5, txt_out => en_msg_0);
       WAIT FOR 3 us;
       wr8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0000", 1, en_msg_0, TRUE, "000001");  -- clear RWD
       vme_arbiter(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, loc_err);
@@ -3098,7 +3111,7 @@ report "DEBUG - STOP in terminal_pkg line 1106" severity failure;
       --! @param bar5 BAR5 settings
       --! @param cmd_status_reg settings for the command status register
       --! @param  ctrl_status_reg settings for the control status register
-      configure_bfm (0, 1024, 1024, BAR0, BAR1, BAR2, BAR3, BAR4, BAR5, x"0010_0000", x"0000_01FF");
+      configure_bfm(terminal_in => terminal_in_0, terminal_out => terminal_out_0, bar0_addr => BAR0, bar1_addr => BAR1, bar2_addr => BAR2, bar3_addr => BAR3, bar4_addr => BAR4, bar5_addr => BAR5, txt_out => en_msg_0);
       WAIT FOR 3 us;
       wr8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0000", 1, en_msg_0, TRUE, "000001");  -- set RWD
       vme_arbiter(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, loc_err);
@@ -3280,7 +3293,48 @@ report "DEBUG - STOP in terminal_pkg line 1106" severity failure;
       err := err_sum;
          print_err("vme_irq_trans", err_sum);
    END PROCEDURE;
-
-
    
+   procedure configure_bfm(
+      signal terminal_in  : in terminal_in_type;
+      signal terminal_out : out terminal_out_type;
+      bar0_addr : std_logic_vector(31 downto 0);
+      bar1_addr : std_logic_vector(31 downto 0);
+      bar2_addr : std_logic_vector(31 downto 0);
+      bar3_addr : std_logic_vector(31 downto 0);
+      bar4_addr : std_logic_vector(31 downto 0);
+      bar5_addr : std_logic_vector(31 downto 0);
+      txt_out   : integer
+   ) is
+   begin
+      if txt_out >= 2 then -- print info
+         print("terminal_pkg->configure_bfm(): set address for BAR0");
+      end if;
+      wr32(terminal_in, terminal_out, x"0000_0000", bar0_addr, 1, txt_out, TRUE, "000011");
+
+      if txt_out >= 2 then -- print info
+         print("terminal_pkg->configure_bfm(): set address for BAR1");
+      end if;
+      wr32(terminal_in, terminal_out, x"0000_0001", bar1_addr, 1, txt_out, TRUE, "000011");
+
+      if txt_out >= 2 then -- print info
+         print("terminal_pkg->configure_bfm(): set address for BAR2");
+      end if;
+      wr32(terminal_in, terminal_out, x"0000_0002", bar2_addr, 1, txt_out, TRUE, "000011");
+
+      if txt_out >= 2 then -- print info
+         print("terminal_pkg->configure_bfm(): set address for BAR3");
+      end if;
+      wr32(terminal_in, terminal_out, x"0000_0003", bar3_addr, 1, txt_out, TRUE, "000011");
+
+      if txt_out >= 2 then -- print info
+         print("terminal_pkg->configure_bfm(): set address for BAR4");
+      end if;
+      wr32(terminal_in, terminal_out, x"0000_0004", bar4_addr, 1, txt_out, TRUE, "000011");
+
+      if txt_out >= 2 then -- print info
+         print("terminal_pkg->configure_bfm(): set address for BAR5");
+      end if;
+      wr32(terminal_in, terminal_out, x"0000_0005", bar5_addr, 1, txt_out, TRUE, "000011");
+
+   end procedure configure_bfm;
 END;

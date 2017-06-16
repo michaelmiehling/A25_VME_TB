@@ -344,20 +344,34 @@ add wave \
    /a25_tb/a25/pcie/clk250_int_3delta_delay
 
 add wave -group {all EP ports}\
-   sim:/a25_tb/a25/pcie/*
+   /a25_tb/a25/pcie/*
 
 add wave -divider {LTSSM mon}
 add wave /a25_tb/pcie_sim_inst/ltssm_mon/*
 
 add wave -divider {BFM}
 add wave \
+   -literal -hex /a25_tb/pcie_sim_inst/bar_addr \
+   /a25_tb/pcie_sim_inst/bar_limit \
+   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar0_addr \
+   -dec /a25_tb/pcie_sim_inst/main/var_bar0_limit \
+   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar1_addr \
+   -dec /a25_tb/pcie_sim_inst/main/var_bar1_limit \
+   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar2_addr \
+   -dec /a25_tb/pcie_sim_inst/main/var_bar2_limit \
+   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar3_addr \
+   -dec /a25_tb/pcie_sim_inst/main/var_bar3_limit \
+   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar4_addr \
+   -dec /a25_tb/pcie_sim_inst/main/var_bar4_limit \
+   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar5_addr \
+   -dec /a25_tb/pcie_sim_inst/main/var_bar5_limit \
    /a25_tb/pcie_sim_inst/ep_clk250_i \
    /a25_tb/pcie_sim_inst/bfm_inst/rp/pclk_in
 
 add wave -group {all BFM ports} \
-   sim:/a25_tb/pcie_sim_inst/bfm_inst/crst \
-   sim:/a25_tb/pcie_sim_inst/bfm_inst/srst \
-   sim:/a25_tb/pcie_sim_inst/*
+   /a25_tb/pcie_sim_inst/bfm_inst/crst \
+   /a25_tb/pcie_sim_inst/bfm_inst/srst \
+   /a25_tb/pcie_sim_inst/*
 
 add wave -divider {testbench}
 add wave \
