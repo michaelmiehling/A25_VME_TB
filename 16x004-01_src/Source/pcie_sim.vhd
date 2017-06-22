@@ -695,31 +695,37 @@ begin
                   var_bar0_limit := get_bar_limit(bar_addr => var_bar0_addr, bar_num => 0);
                   bar_addr(0)    <= var_bar0_addr;
                   bar_limit(0)   <= var_bar0_limit;
+                  success_int    := true;
                elsif term_out.adr(2 downto 0) = "001" then                      -- BAR1
                   var_bar1_addr  := term_out.dat;
                   var_bar1_limit := get_bar_limit(bar_addr => var_bar1_addr, bar_num => 1);
                   bar_addr(1)    <= var_bar1_addr;
                   bar_limit(1)   <= var_bar1_limit;
+                  success_int    := true;
                elsif term_out.adr(2 downto 0) = "010" then                      -- BAR2
                   var_bar2_addr  := term_out.dat;
                   var_bar2_limit := get_bar_limit(bar_addr => var_bar2_addr, bar_num => 2);
                   bar_addr(2)    <= var_bar2_addr;
                   bar_limit(2)   <= var_bar2_limit;
+                  success_int    := true;
                elsif term_out.adr(2 downto 0) = "011" then                      -- BAR3
                   var_bar3_addr  := term_out.dat;
                   var_bar3_limit := get_bar_limit(bar_addr => var_bar3_addr, bar_num => 3);
                   bar_addr(3)    <= var_bar3_addr;
                   bar_limit(3)   <= var_bar3_limit;
+                  success_int    := true;
                elsif term_out.adr(2 downto 0) = "100" then                      -- BAR4
                   var_bar4_addr  := term_out.dat;
                   var_bar4_limit := get_bar_limit(bar_addr => var_bar4_addr, bar_num => 4);
                   bar_addr(4)    <= var_bar4_addr;
                   bar_limit(4)   <= var_bar4_limit;
+                  success_int    := true;
                elsif term_out.adr(2 downto 0) = "101" then                      -- BAR5
                   var_bar5_addr  := term_out.dat;
                   var_bar5_limit := get_bar_limit(bar_addr => var_bar5_addr, bar_num => 5);
                   bar_addr(5)    <= var_bar5_addr;
                   bar_limit(5)   <= var_bar5_limit;
+                  success_int    := true;
                else
                   report "ERROR: pcie_sim.vhd: term_out.tga is set to SETUP_CYCLE but term_out.adr has an invalid value!" &
                          " Use values 000 to 101." severity error;

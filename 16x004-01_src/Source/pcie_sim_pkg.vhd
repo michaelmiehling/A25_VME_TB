@@ -188,6 +188,21 @@ package pcie_sim_pkg is
       irq_nbr : in  integer range 3 downto 0
    );
 
+   procedure bfm_configure_msi(
+      constant msi_addr     : in  natural;                                      -- MSI address in shared memory
+      msi_data              : in  std_logic_vector(15 downto 0);                -- contained in MSI message
+      variable msi_expected : out std_logic_vector(31 downto 0);                -- expected data value for MSI
+      success               : out boolean
+   );
+
+   procedure bfm_poll_msi(
+      constant track_msi    : in natural;
+      constant msi_addr     : in natural;
+      constant msi_expected : in std_logic_vector(31 downto 0);
+      constant txt_out      : in integer;
+      success               : out boolean
+   );
+
 end package pcie_sim_pkg;
 
 package body pcie_sim_pkg is
@@ -241,33 +256,33 @@ package body pcie_sim_pkg is
    begin
       if byte_valid(0) = '1' then
          if ref_val(7 downto 0) /= check_val(7 downto 0) then
-            print_now("BFM ERROR in" & caller_proc & "(): data read does not match given reference value - mismatch in byte0");
-            write_s_slvec("BFM ERROR in" & caller_proc & "(): reference value[7:0] = ",ref_val(7 downto 0));
-            write_s_slvec("BFM ERROR in" & caller_proc & "(): read value[7:0] = ",check_val(7 downto 0));
+            print_now("BFM ERROR in " & caller_proc & "(): data read does not match given reference value - mismatch in byte0");
+            write_s_slvec("BFM ERROR in " & caller_proc & "(): reference value[7:0] = ",ref_val(7 downto 0));
+            write_s_slvec("BFM ERROR in " & caller_proc & "(): read value[7:0] = ",check_val(7 downto 0));
             pass := false;
          end if;
       end if;
       if byte_valid(1) = '1' then
          if ref_val(15 downto 8) /= check_val(15 downto 8) then
-            print_now("BFM ERROR in" & caller_proc & "(): data read does not match given reference value - mismatch in byte1");
-            write_s_slvec("BFM ERROR in" & caller_proc & "(): reference value[15:8] = ",ref_val(15 downto 8));
-            write_s_slvec("BFM ERROR in" & caller_proc & "(): read value[15:8] = ",check_val(15 downto 8));
+            print_now("BFM ERROR in " & caller_proc & "(): data read does not match given reference value - mismatch in byte1");
+            write_s_slvec("BFM ERROR in " & caller_proc & "(): reference value[15:8] = ",ref_val(15 downto 8));
+            write_s_slvec("BFM ERROR in " & caller_proc & "(): read value[15:8] = ",check_val(15 downto 8));
             pass := false;
          end if;
       end if;
       if byte_valid(2) = '1' then
          if ref_val(23 downto 16) /= check_val(23 downto 16) then
-            print_now("BFM ERROR in" & caller_proc & "(): data read does not match given reference value - mismatch in byte2");
-            write_s_slvec("BFM ERROR in" & caller_proc & "(): reference value[23:16] = ",ref_val(23 downto 16));
-            write_s_slvec("BFM ERROR in" & caller_proc & "(): read value[23:16] = ",check_val(23 downto 16));
+            print_now("BFM ERROR in " & caller_proc & "(): data read does not match given reference value - mismatch in byte2");
+            write_s_slvec("BFM ERROR in " & caller_proc & "(): reference value[23:16] = ",ref_val(23 downto 16));
+            write_s_slvec("BFM ERROR in " & caller_proc & "(): read value[23:16] = ",check_val(23 downto 16));
             pass := false;
          end if;
       end if;
       if byte_valid(3) = '1' then
          if ref_val(31 downto 24) /= check_val(31 downto 24) then
-            print_now("BFM ERROR in" & caller_proc & "(): data read does not match given reference value - mismatch in byte3");
-            write_s_slvec("BFM ERROR in" & caller_proc & "(): reference value[31:24] = ",ref_val(31 downto 24));
-            write_s_slvec("BFM ERROR in" & caller_proc & "(): read value[31:24] = ",check_val(31 downto 24));
+            print_now("BFM ERROR in " & caller_proc & "(): data read does not match given reference value - mismatch in byte3");
+            write_s_slvec("BFM ERROR in " & caller_proc & "(): reference value[31:24] = ",ref_val(31 downto 24));
+            write_s_slvec("BFM ERROR in " & caller_proc & "(): read value[31:24] = ",check_val(31 downto 24));
             pass := false;
          end if;
       end if;
@@ -308,16 +323,13 @@ package body pcie_sim_pkg is
       variable var_addr     : natural;
       variable var_data_buf : std_logic_vector(nbr_of_dw *32 -1 downto 0);
    begin
-      print_now("BFM: set BFM internal memory");
-      print_s_i("BFM: number of dwords = ",nbr_of_dw);
-      print_s_std("BFM: start address = ", mem_addr);
-      print_s_std("BFM: initial data value = ", start_data_val);
-      print_s_i("BFM: data value increment = ",data_inc);
+      --print_now("BFM: set BFM internal memory");
+      --print_s_i("BFM: number of dwords = ",nbr_of_dw);
+      --print_s_std("BFM: start address = ", mem_addr);
+      --print_s_std("BFM: initial data value = ", start_data_val);
+      --print_s_i("BFM: data value increment = ",data_inc);
 
---TODO: check set_bfm_memory() for correct behavior
--- how to distinguish between I/O and MEM32?
       for i in 0 to nbr_of_dw -1 loop
-         --bfm_databuf(i) := std_logic_vector(unsigned(start_data_val) + to_unsigned(i*data_inc,32));
          var_data_buf(i*32+31 downto i*32) := std_logic_vector(unsigned(start_data_val) + to_unsigned(i*data_inc,32));
       end loop;
 
@@ -344,17 +356,14 @@ package body pcie_sim_pkg is
       variable var_addr        : natural;
       variable var_data_buf    : std_logic_vector(nbr_of_dw *32 -1 downto 0);
    begin
---TODO: check get_bfm_memory() for correct behavior
--- how to distinguish between I/O and MEM32?
       if nbr_of_dw > BFM_BUFFER_MAX_SIZE then
          print_now("BFM ERROR in get_bfm_memory(): nbr_of_dw exceeds BFM_BUFFER_MAX_SIZE");
       else
-         print_now("BFM: get values from BFM internal memory");
-         print_s_i("BFM: number of dwords = ",nbr_of_dw);
+         --print_now("BFM: get values from BFM internal memory");
+         --print_s_i("BFM: number of dwords = ",nbr_of_dw);
          
          var_byte_len := natural(nbr_of_dw *4);
          var_addr     := to_integer(unsigned(mem_addr));
-         --var_databuf  := shmem_read(addr => var_addr, leng => var_byte_len);
          var_data_buf  := shmem_read(addr => var_addr, leng => var_byte_len);
 
          for i in 0 to nbr_of_dw -1 loop
@@ -371,15 +380,17 @@ package body pcie_sim_pkg is
       data32     : in  std_logic_vector(31 downto 0);
       success    : out boolean
    ) is
-      variable var_pass : boolean := true;
+      variable var_pass       : boolean := true;
+      variable var_local_addr : natural := 0;
    begin
       var_pass := true;
 
       -----------------------------------------
       -- write user data to BFM shared memory
       -----------------------------------------
+      var_local_addr := 0;
       shmem_write(
-         addr => 0,
+         addr => var_local_addr,
          data => data32,
          leng => 4                                                              -- length in bytes
       );
@@ -391,7 +402,7 @@ package body pcie_sim_pkg is
          bar_table   => BAR_TABLE_POINTER,
          bar_num     => bar_num,
          pcie_offset => bar_offset,
-         lcladdr     => 0,                                                      -- shmem address
+         lcladdr     => var_local_addr,                                         -- shmem address
          byte_len    => 4,
          tclass      => 0
       );
@@ -409,8 +420,9 @@ package body pcie_sim_pkg is
    ) is
       --variable var_databuf : dword_vector(8*byte_count -1 downto 0);
       variable var_data_buf   : std_logic_vector(8*byte_count -1 downto 0);
-      variable var_pass      : boolean := true;
-      variable var_nbr_of_dw : integer;
+      variable var_pass       : boolean := true;
+      variable var_nbr_of_dw  : integer;
+      variable var_local_addr : natural := 0;
    begin
       var_pass      := true;
       var_nbr_of_dw := byte_count * 4;
@@ -418,19 +430,16 @@ package body pcie_sim_pkg is
       -------------------
       -- copy user data
       -------------------
---TODO: fix data copy
       for i in 0 to var_nbr_of_dw -1 loop
          var_data_buf(i*32+31 downto i*32) := data32(i);
       end loop;
-      --for i in 0 to var_databuf'length -1 loop
-      --   var_databuf(i) := data32(i);
-      --end loop;
 
       -----------------------------------------
       -- write user data to BFM shared memory
       -----------------------------------------
+      var_local_addr := 0 + bar_offset;
       shmem_write(
-         addr => 0,
+         addr => var_local_addr,
          data => var_data_buf,
          leng => byte_count                                                     -- length in bytes
       );
@@ -442,7 +451,7 @@ package body pcie_sim_pkg is
          bar_table   => BAR_TABLE_POINTER,
          bar_num     => bar_num,
          pcie_offset => bar_offset,
-         lcladdr     => 0,                                                      -- shmem address
+         lcladdr     => var_local_addr,                                         -- shmem address
          byte_len    => byte_count,
          tclass      => 0
       );
@@ -459,9 +468,10 @@ package body pcie_sim_pkg is
       data32_out : out std_logic_vector(31 downto 0);
       success    : out boolean
    ) is
-      variable var_byte_len : natural := 0;
-      variable var_pass     : boolean := true;
-      variable var_databuf  : dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
+      variable var_byte_len   : natural := 0;
+      variable var_pass       : boolean := true;
+      variable var_databuf    : dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
+      variable var_local_addr : natural := 0;
    begin
       var_pass   := true;
       data32_out := (others => '0');
@@ -485,18 +495,19 @@ package body pcie_sim_pkg is
       end if;
       print_s_i("var_byte_len = ", var_byte_len);
       
+      var_local_addr := 0;
       ebfm_barrd_wait(
          bar_table   => BAR_TABLE_POINTER,
          bar_num     => bar_num,
          pcie_offset => bar_offset,
-         lcladdr     => 0,
+         lcladdr     => var_local_addr,
          byte_len    => var_byte_len,
          tclass      => 0
       );
 
       get_bfm_memory(
          nbr_of_dw   => 1,
-         mem_addr    => x"0000_0000",
+         mem_addr    => std_logic_vector(to_unsigned(var_local_addr,32)), --x"0000_0000",
          databuf_out => var_databuf
       );
 
@@ -527,10 +538,12 @@ package body pcie_sim_pkg is
       data32_out : out dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
       success    : out boolean
    ) is
-      variable var_data_buf_max  : dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
-      variable var_data_buf  : std_logic_vector(byte_count *8 downto 0);
+      variable var_databuf_max  : dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
+      variable var_databuf  : std_logic_vector(byte_count *8 downto 0);
       variable var_pass     : boolean := true;
+      variable var_pass_temp : boolean := true;
       variable var_nbr_of_dw : integer;
+      variable var_local_addr : natural := 0;
       variable byte_en      : std_logic_vector(3 downto 0) := (others => '0');
       variable first_DW_en  : std_logic_vector(3 downto 0) := (others => '0');
       variable last_DW_en   : std_logic_vector(3 downto 0) := (others => '0');
@@ -538,56 +551,47 @@ package body pcie_sim_pkg is
       var_pass   := true;
       data32_out := (others => (others => '0'));
 
+      -- initialize data buffer with known default values
+      for i in 0 to BFM_BUFFER_MAX_SIZE loop
+         var_databuf_max(i) := x"CAFE_AFFE";
+      end loop;
+
+      var_local_addr := 0;
       ebfm_barrd_wait(
          bar_table   => BAR_TABLE_POINTER,
          bar_num     => bar_num,
          pcie_offset => bar_offset,
-         lcladdr     => 0,
+         lcladdr     => var_local_addr,
          byte_len    => byte_count,
          tclass      => 0
       );
---TODO: add data check
 
-      --case pcie_addr(1 downto 0) is
-      --   when "00" => first_DW_en := "1111";
-      --   when "01" => first_DW_en := "1110";
-      --   when "10" => first_DW_en := "1100";
-      --   when "11" => first_DW_en := "1000";
-      --   when others => first_DW_en := "1111";
-      --end case;
-      --last_DW_en := calc_last_dw(first_dw => first_DW_en, byte_count => byte_count);
-
-      --for i in 0 to (byte_count /4) -1 loop
-      --   if ref_data32(i) = DONT_CHECK32 then
-      --      print_now("BFM: checking of read value skipped on user command");
-      --   else
-      --      if i = 0 then
-      --         byte_en := first_DW_en;
-      --      elsif i = (byte_count /4) -1 then
-      --         byte_en := last_DW_en;
-      --      else
-      --         byte_en := x"F";
-      --      end if;
-
-      --      check_val(
-      --         caller_proc => "bfm_rd_mem32",
-      --         ref_val     => ref_data32(i),
-      --         check_val   => var_databuf(i),
-      --         byte_valid  => byte_en,
-      --         check_ok    => var_pass
-      --      );
-      --   end if;
-      --   wait for 0 ns;
-      --end loop;
-      var_data_buf := shmem_read(addr => 0, leng => byte_count);
+      var_databuf := shmem_read(addr => 0, leng => byte_count);
 
       var_nbr_of_dw := byte_count *4;
       for i in 0 to var_nbr_of_dw -1 loop
-         var_data_buf_max(i) := var_data_buf(i*32+31 downto i*32);
+         var_databuf_max(i) := var_databuf(i*32+31 downto i*32);
       end loop;
 
+      -----------------------------------
+      -- check if read value is correct
+      -----------------------------------
+      for i in 0 to BFM_BUFFER_MAX_SIZE loop
+         if ref_data32(i) = DONT_CHECK32 then
+            print_now("BFM: checking of read value skipped on user command");
+         else
+            check_val(
+               caller_proc => "bfm_rd_mem32",
+               ref_val     => ref_data32(i),
+               check_val   => var_databuf_max(i),
+               byte_valid  => x"F",
+               check_ok    => var_pass_temp
+            );
+         end if;
+         var_pass := var_pass and var_pass_temp;
+      end loop;
 
-      data32_out  := var_data_buf_max;
+      data32_out  := var_databuf_max;
 
       success := var_pass;
    end procedure;
@@ -680,6 +684,18 @@ package body pcie_sim_pkg is
          lcladdr => 0,
          compl_status => var_compl_status
       );
+      if var_compl_status = "000" then
+         var_pass := true;                                                      -- successful completion
+      elsif var_compl_status = "001" then
+         print_now("ERROR(bfm_rd_config): return status for config read is unsupported request");
+         var_pass := false;
+      elsif var_compl_status = "010" then
+         print_now("ERROR(bfm_rd_config): return status for config read is configuration request retry status");
+         var_pass := false;
+      elsif var_compl_status = "100" then
+         print_now("ERROR(bfm_rd_config): return status for config read is completer abort");
+         var_pass := false;
+      end if;
 
       -----------------------------------
       -- check if read value is correct
@@ -712,6 +728,245 @@ package body pcie_sim_pkg is
    ) is
    begin
       report "ERROR: NO CONTENT IN PROCEDURE WAIT_ON_IRQ_DEASSERT" severity error;
+   end procedure;
+
+   procedure bfm_configure_msi(
+      constant msi_addr     : in  natural;                                      -- MSI address in shared memory
+      msi_data              : in  std_logic_vector(15 downto 0);                -- contained in MSI message
+      variable msi_expected : out std_logic_vector(31 downto 0);                -- expected data value for MSI
+      success               : out boolean
+   ) is
+      function check_compl_status(
+         compl_status : in std_logic_vector(2 downto 0)
+      ) return boolean is
+
+         variable var_pass : boolean := false;
+      begin
+         if compl_status = "000" then
+            var_pass := true;                                                      -- successful completion
+         elsif compl_status = "001" then
+            print_now("ERROR(bfm_configure_msi): return status for config read is unsupported request");
+            var_pass := false;
+         elsif compl_status = "010" then
+            print_now("ERROR(bfm_configure_msi): return status for config read is configuration request retry status");
+            var_pass := false;
+         elsif compl_status = "100" then
+            print_now("ERROR(bfm_configure_msi): return status for config read is completer abort");
+            var_pass := false;
+         end if;
+         return var_pass;
+      end function check_compl_status;
+
+      constant MSI_CAP_ADDR  : natural := 80;                                   -- MSI capabilities register
+      constant TRAFFIC_CLASS : std_logic_vector(2 downto 0) := "000";
+      constant BUS_NUM       : natural := 1;
+      constant DEV_NUM       : natural := 1;
+      constant FUNC_NUM      : natural := 0;
+
+      variable var_pass          : boolean := true;
+      variable var_msi_ctrl_reg  : std_logic_vector(15 downto 0) := (others => '0');
+      variable var_msi_is_64b    : std_logic_vector(0 downto 0) := (others => '0');
+      variable var_is_multi_mess : std_logic_vector(2 downto 0) := (others => '0');
+      variable var_multi_mess_en : std_logic_vector(2 downto 0) := (others => '0');
+      variable var_msi_en        : std_logic := '0';
+      variable var_compl_status  : std_logic_vector(2 downto 0) := (others => '0');
+      variable var_msi_expected  : std_logic_vector(31 downto 0) := (others => '0');
+      variable var_msi_nbr       : std_logic_vector(4 downto 0) := (others => '0');
+      variable var_msi_addr      : std_logic_vector(31 downto 0) := (others => '0');
+   begin 
+      var_pass     := true;
+      var_msi_addr := std_logic_vector(to_unsigned(msi_addr,32));
+
+      -- read EP config space
+      ebfm_cfgrd_wait(
+         bus_num      => BUS_NUM,
+         dev_num      => DEV_NUM,
+         fnc_num      => FUNC_NUM,
+         regb_ad      => MSI_CAP_ADDR,
+         regb_ln      => 4,
+         lcladdr      => msi_addr,
+         compl_status => var_compl_status
+      );
+      var_pass := check_compl_status(var_compl_status);
+         
+      -- check if EP has 64bit MSI and multi message enabled
+      var_msi_ctrl_reg  := shmem_read(msi_addr +2, 2);
+      var_msi_is_64b    := var_msi_ctrl_reg(7 downto 7);
+      var_is_multi_mess := var_msi_ctrl_reg(3 downto 1);
+      var_multi_mess_en := var_is_multi_mess;
+
+      -- enable msi
+      var_msi_en := '1';
+
+      -- write changed content back tp EP config space
+      ebfm_cfgwr_imm_wait(
+         bus_num => BUS_NUM,
+         dev_num => DEV_NUM,
+         fnc_num => FUNC_NUM,
+         regb_ad => MSI_CAP_ADDR,
+         regb_ln => 4,
+         imm_data => (x"00" & var_msi_is_64b &
+                     var_multi_mess_en &
+                     var_is_multi_mess &
+                     var_msi_en & x"0000"),
+         compl_status => var_compl_status
+      );
+      var_pass := check_compl_status(var_compl_status);
+
+      -- define expected msi message
+      var_msi_nbr := "00001";
+      if (var_multi_mess_en = "000") then
+          var_msi_expected := x"0000" & msi_data(15 downto 0);
+      elsif (var_multi_mess_en = "001") then
+          var_msi_expected := x"0000" & msi_data(15 downto 1) & var_msi_nbr(0 downto 0);
+      elsif (var_multi_mess_en = "010") then
+          var_msi_expected := x"0000" & msi_data(15 downto 2) & var_msi_nbr(1 downto 0);
+      elsif (var_multi_mess_en = "011") then
+          var_msi_expected := x"0000" & msi_data(15 downto 3) & var_msi_nbr(2 downto 0);
+      elsif (var_multi_mess_en = "100") then
+          var_msi_expected := x"0000" & msi_data(15 downto 4) & var_msi_nbr(3 downto 0);
+      elsif (var_multi_mess_en = "101") then
+          var_msi_expected := x"0000" & msi_data(15 downto 5) & var_msi_nbr(4 downto 0);
+      else
+         print_now("ERROR(bfm_configure_msi): illegal value for multi message enable, can't configure MSI");
+         var_pass := false;
+      end if;
+      msi_expected := var_msi_expected;
+
+      -- program all msi capability registers (64 and 32 bit!)
+      if var_msi_is_64b = "1" then -- 64bit addressing
+         -- set lower address where MSI will be written
+         ebfm_cfgwr_imm_wait(
+            bus_num      => BUS_NUM,
+            dev_num      => DEV_NUM,
+            fnc_num      => FUNC_NUM,
+            regb_ad      => (MSI_CAP_ADDR +4),
+            regb_ln      => 4,
+            imm_data     => var_msi_addr,
+            compl_status => var_compl_status
+         );
+         var_pass := check_compl_status(var_compl_status);
+
+         -- set upper address where MSI will be written
+         ebfm_cfgwr_imm_wait(
+            bus_num      => BUS_NUM,
+            dev_num      => DEV_NUM,
+            fnc_num      => FUNC_NUM,
+            regb_ad      => (MSI_CAP_ADDR +4),
+            regb_ln      => 4,
+            imm_data     => x"0000_0000",
+            compl_status => var_compl_status
+         );
+         var_pass := check_compl_status(var_compl_status);
+
+         -- set which data value shall be writen when endpoint issues MSI
+         ebfm_cfgwr_imm_wait(
+            bus_num      => BUS_NUM,
+            dev_num      => DEV_NUM,
+            fnc_num      => FUNC_NUM,
+            regb_ad      => (MSI_CAP_ADDR +12),
+            regb_ln      => 4,
+            imm_data     => x"0000" & msi_data,
+            compl_status => var_compl_status
+         );
+         var_pass := check_compl_status(var_compl_status);
+
+      else  -- 32bit addressing
+         -- set lower address where MSI will be written
+         ebfm_cfgwr_imm_wait(
+            bus_num      => BUS_NUM,
+            dev_num      => DEV_NUM,
+            fnc_num      => FUNC_NUM,
+            regb_ad      => (MSI_CAP_ADDR +4),
+            regb_ln      => 4,
+            imm_data     => var_msi_addr,
+            compl_status => var_compl_status
+         );
+         var_pass := check_compl_status(var_compl_status);
+
+         -- set which data value shall be writen when endpoint issues MSI
+         ebfm_cfgwr_imm_wait(
+            bus_num      => BUS_NUM,
+            dev_num      => DEV_NUM,
+            fnc_num      => FUNC_NUM,
+            regb_ad      => (MSI_CAP_ADDR +8),
+            regb_ln      => 4,
+            imm_data     => x"0000" & msi_data,
+            compl_status => var_compl_status
+         );
+         var_pass := check_compl_status(var_compl_status);
+
+      end if;
+
+      -- clear MSI location in shared memory
+      shmem_write(msi_addr, x"FADE_FADE", 4);
+
+      success := var_pass;
+   end procedure;
+    
+   procedure bfm_poll_msi(
+      constant track_msi    : in natural;
+      constant msi_addr     : in natural;
+      constant msi_expected : in std_logic_vector(31 downto 0);
+      constant txt_out      : in integer;
+      success               : out boolean
+   ) is
+      constant POLLING_TIMEOUT  : natural :=  2048;
+      variable var_pass         : boolean := true;
+      variable var_loop_val     : natural range 1 downto 0 := 1;
+      variable var_poll_timer   : natural := 0;
+      variable var_msi_received : std_logic_vector(15 downto 0) := (others => '0');
+   begin
+      var_pass := true;
+
+      track_msi_loop : for i in 0 to track_msi loop
+         if txt_out >=2 then print_s_i("bfm_poll_msi(): tracking MSI number: ", i); end if;
+
+         var_loop_val := 1;
+         while var_loop_val = 1 loop
+            --wait for 10 ns;
+            wait for 10 us;
+            var_poll_timer := var_poll_timer +1;
+
+--TODO: remove
+print("");
+print("+------------------------------------------------------------------+");
+print_now("*** DEBUG - bfm_poll_msi() ***");
+print_s_hl("msi_addr = ", std_logic_vector(to_unsigned(msi_addr,32)));
+            var_msi_received := (others => '0');
+print_s_hw("var_msi_received = ", var_msi_received);
+print_now("*** before shmemread");
+            var_msi_received := shmem_read(msi_addr, 2);
+print_now("*** after shmemread");
+print_s_hw("var_msi_received = ", var_msi_received);
+print_s_hl("msi_expected(31 downto 0) = ", msi_expected);
+print_s_hw("msi_expected(15 downto 0) = ", msi_expected(15 downto 0));
+print("+------------------------------------------------------------------+");
+print("");
+
+            if var_msi_received = msi_expected(15 downto 0) then
+               -- clear shared memory location and exit polling loop
+--TODO: remove
+print_now("bfm_poll_msi(): received correct data value, now clearing shared memory...");
+               shmem_write(msi_addr, x"FADE_FADE", 4);
+               var_loop_val := 0;
+            end if;
+
+            -- manage internal timeout
+            if var_poll_timer >= POLLING_TIMEOUT then
+               var_pass := false;
+               if txt_out >= 1 then
+                  print_now("ERROR(bfm_poll_msi): no MSI captured within timeout time");
+               end if;
+               success := var_pass;
+--TODO: remove
+report "*** DEBUG *** STOP DUE TO POLLING TIMER TIMEOUT" severity failure;
+               exit track_msi_loop;
+            end if;
+         end loop;
+      end loop track_msi_loop;
+
+      success := var_pass;
    end procedure;
 
 end package body pcie_sim_pkg;

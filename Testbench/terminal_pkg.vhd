@@ -1116,7 +1116,6 @@ PACKAGE BODY terminal_pkg IS
       print_time("check result of slot1 detection");
       rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0018", x"00000000", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
-report "DEBUG - terminal_pkg line 1119 - STOP SIM" severity failure;
       
       print_time(" vb_sysresn inactive?");
       IF vb_sysresn = '0' THEN
@@ -3229,31 +3228,68 @@ report "DEBUG - terminal_pkg line 1119 - STOP SIM" severity failure;
       VARIABLE loc_err : integer:=0;
       VARIABLE err_sum : integer:=0;
       VARIABLE dat : std_logic_vector(31 DOWNTO 0);
+      variable var_msi_expected : std_logic_vector(31 downto 0) := (others => '0');
+      variable var_success      : boolean := false;
+      constant MSI_SHMEM_ADDR   : natural := 2096896; -- := x"1FFF00" at upper end of shared memory
+      --constant MSI_SHMEM_ADDR : natural := 0; -- := x"1FFF70" at upper end of shared memory
    BEGIN
       print("Test MEN_01A021_00_IT_0090: Interrupt Handler");
-      -- enable receiving interrupts
-      wr8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_000c", x"0000_00ff", 1, en_msg_0, TRUE, "000001");
-      rd8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_000c", x"0000_00ff", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      WAIT FOR 150 ns;
-   
-      FOR i IN 1 TO 7 LOOP
-         irq_vme_slv (vme_slv_in, vme_slv_out, i, x"00"+i);
-         wait_on_irq_assert(0);
-         IF irq_req(i+4) = '0' THEN    -- acfail + vme_irq is irq_req(11:5)
-            print_time("ERROR vme_irq_rcv: wrong irq asserted");
-         END IF;
-         dat:=x"00"+i & x"00"+i & x"00"+i & x"00"+i;
-         rd8(terminal_in_0, terminal_out_0, VME_IACK + (2*i) + 1, dat, 1, en_msg_0, TRUE, "000001", loc_err);
+      var_success := false;
+      bfm_configure_msi(
+         msi_addr     => MSI_SHMEM_ADDR,
+         msi_data     => x"0011",
+         msi_expected => var_msi_expected,
+         success      => var_success
+      );
+--TODO: remove
+print_now(" *** DEBUG: after bfm_configure_msi()");
+print_s_hl("var_msi_expected = ", var_msi_expected);
+report "bfm_configure_msi var_success = " & boolean'image(var_success);
+--report "=== STOP ===" severity failure;
+      if not var_success then 
+         err_sum := err_sum +1;
+         if en_msg_0 >= 1 then 
+            print_now("ERROR(vme_irq_rcv): error while executing bfm_configure_msi() - MSI NOT configured, MSI behavior is UNDEFINED!");
+            print("   ---> test case skipped");
+         end if;
+      else
+         -- enable receiving interrupts
+         wr8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_000c", x"0000_00ff", 1, en_msg_0, TRUE, "000001");
+         rd8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_000c", x"0000_00ff", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
-         WAIT FOR 300 ns;
-      END LOOP;
-      -- disable receiving interrupts
-      wr8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_000c", x"0000_0000", 1, en_msg_0, TRUE, "000001");
-      rd8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_000c", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
+         WAIT FOR 150 ns;
+      
+         FOR i IN 1 TO 7 LOOP
+            irq_vme_slv (vme_slv_in, vme_slv_out, i, x"00"+i);
+            --wait_on_irq_assert(0);
+            var_success := false;
+            bfm_poll_msi(
+               track_msi    => 1,
+               msi_addr     => MSI_SHMEM_ADDR,
+               msi_expected => var_msi_expected,
+               txt_out      => en_msg_0,
+               success      => var_success
+            );
+            if not var_success then 
+               err_sum := err_sum +1;
+               if en_msg_0 >= 1 then print_now("ERROR(vme_irq_rcv): error while executing bfm_poll_msi()"); end if;
+            end if;
+            IF irq_req(i+4) = '0' THEN    -- acfail + vme_irq is irq_req(11:5)
+               print_time("ERROR vme_irq_rcv: wrong irq asserted");
+            END IF;
+            dat:=x"00"+i & x"00"+i & x"00"+i & x"00"+i;
+            rd8(terminal_in_0, terminal_out_0, VME_IACK + (2*i) + 1, dat, 1, en_msg_0, TRUE, "000001", loc_err);
+            err_sum := err_sum + loc_err;
+            WAIT FOR 300 ns;
+         END LOOP;
+         -- disable receiving interrupts
+         wr8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_000c", x"0000_0000", 1, en_msg_0, TRUE, "000001");
+         rd8(terminal_in_0, terminal_out_0, VME_REGS + x"0000_000c", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+      end if;
+
       err := err_sum;
-         print_err("vme_irq_rcv", err_sum);
+      print_err("vme_irq_rcv", err_sum);
    END PROCEDURE;
 
 ------------------------------------------------------------------------------------------

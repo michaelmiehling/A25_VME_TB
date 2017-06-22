@@ -219,19 +219,19 @@ vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/wbb2vme_top.vhd
 
 # pcie core simulation files
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_rs_serdes.vhd
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_rs_serdes.vhd
+vcom -2002 ../../Altera_src/new/x1/altpcie_rs_serdes.vhd
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_100_250.vhd
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_125_250.vhd
 
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcierd_reconfig_clk_pll.vhd
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_125_250.vhd
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_125.vhd
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_250.vhd
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_reconfig_4sgx.vhd
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/common/testbench/altpcie_reconfig_3cgx.vhd
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/chaining_dma/Hard_IP_x1_plus.vhd
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_examples/chaining_dma/Hard_IP_x1_rs_hip.vhd
-vcom -2002 ../../Altera_src/x1/Hard_IP_x1_core.vho
+vcom -2002 ../../Altera_src/new/x1/altpcierd_reconfig_clk_pll.vhd
+vcom -2002 ../../Altera_src/new/x1/altpcie_pll_125_250.vhd
+vcom -2002 ../../Altera_src/new/x1/altpcie_pll_100_125.vhd
+vcom -2002 ../../Altera_src/new/x1/altpcie_pll_100_250.vhd
+vcom -2002 ../../Altera_src/new/x1/altpcie_reconfig_4sgx.vhd
+vcom -2002 ../../Altera_src/new/x1/altpcie_reconfig_3cgx.vhd
+vcom -2002 ../../Altera_src/new/x1/Hard_IP_x1_plus.vhd
+vcom -2002 ../../Altera_src/new/x1/Hard_IP_x1_rs_hip.vhd
+vcom -2002 ../../Altera_src/new/x1/Hard_IP_x1_core.vho
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/Hard_IP_x1_core.vho
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Simulation/Hard_IP_x4_core.vho
 
@@ -339,15 +339,21 @@ add wave \
 add wave -divider {PCIe EP}
 add wave \
    /a25_tb/a25/pcie/clk250_int \
-   /a25_tb/a25/pcie/clk250_int_1delta_delay \
-   /a25_tb/a25/pcie/clk250_int_2delta_delay \
-   /a25_tb/a25/pcie/clk250_int_3delta_delay
+   /a25_tb/a25/pcie/app_int_ack_int \
+   /a25_tb/a25/pcie/app_msi_ack_int \
+   /a25_tb/a25/pcie/app_int_sts_int \
+   /a25_tb/a25/pcie/app_msi_req_int \
+   /a25_tb/a25/pcie/app_msi_tc_int \
+   /a25_tb/a25/pcie/app_msi_num_int \
+   /a25_tb/a25/pcie/pex_msi_num_int \
+   /a25_tb/a25/pcie/int_wb_int \
+   /a25_tb/a25/pcie/int_wb_pwr_enable \
+   /a25_tb/a25/pcie/int_wb_int_num \
+   /a25_tb/a25/pcie/int_wb_int_ack \
+   /a25_tb/a25/pcie/int_wb_int_num_allowed
 
 add wave -group {all EP ports}\
    /a25_tb/a25/pcie/*
-
-add wave -divider {LTSSM mon}
-add wave /a25_tb/pcie_sim_inst/ltssm_mon/*
 
 add wave -divider {BFM}
 add wave \
@@ -366,7 +372,12 @@ add wave \
    -literal -hex /a25_tb/pcie_sim_inst/main/var_bar5_addr \
    -dec /a25_tb/pcie_sim_inst/main/var_bar5_limit \
    /a25_tb/pcie_sim_inst/ep_clk250_i \
-   /a25_tb/pcie_sim_inst/bfm_inst/rp/pclk_in
+   /a25_tb/pcie_sim_inst/bfm_inst/rp/pclk_in \
+   /a25_tb/pcie_sim_inst/bfm_inst/app_int_sts \
+   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_ack \
+   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_req \
+   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_tc \
+   /a25_tb/pcie_sim_inst/bfm_inst/cfg_msicsr
 
 add wave -group {all BFM ports} \
    /a25_tb/pcie_sim_inst/bfm_inst/crst \

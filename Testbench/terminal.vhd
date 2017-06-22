@@ -165,11 +165,11 @@ report "DEBUG: after configure_bfm" severity note;
    print("                Start of Tests");
    print("***************************************************");
    -- Reset:
-report "DEBUG: starting vme_reset()" severity note;
-   vme_reset(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, slot1, hreset_n, v2p_rstn, vb_sysresn, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
-report "STOP" severity failure;
+--TODO: commented test case, this one works
+   --vme_reset(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, slot1, hreset_n, v2p_rstn, vb_sysresn, en_msg_0, err);
+   --terminal_err_0 <= terminal_err_0 + err;
 
+--TODO: from here all TC untested!
 --   -- VME Buserror:
 --   vme_buserror(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
 --   terminal_err_0 <= terminal_err_0 + err;
@@ -183,9 +183,10 @@ report "STOP" severity failure;
 --   terminal_err_0 <= terminal_err_0 + err;    
 
    -- VME Slave:
-report "DEBUG: starting vme_ga_test()" severity note;
-   vme_slave_a242sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
-   terminal_err_0 <= terminal_err_0 + err;
+--TODO: commented test case, this one works
+   --vme_slave_a242sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+   --terminal_err_0 <= terminal_err_0 + err;
+--report "STOP" severity failure;
 
 --   vme_slave_a242pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
 --   terminal_err_0 <= terminal_err_0 + err;
@@ -204,8 +205,9 @@ report "DEBUG: starting vme_ga_test()" severity note;
 --   terminal_err_0 <= terminal_err_0 + err;
 --
 --   -- VME Interrupt Handler:
---   vme_irq_rcv(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, irq_req, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
+   --TODO: use this for IRQ adaption
+   vme_irq_rcv(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
 --
 --   -- VME Interrupter:
 --   vme_irq_trans(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, en_msg_0, err);
