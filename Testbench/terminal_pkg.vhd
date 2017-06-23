@@ -2721,106 +2721,203 @@ PACKAGE BODY terminal_pkg IS
                en_msg_0       : integer;
                err            : OUT natural
                ) IS
-      VARIABLE loc_err : integer:=0;
-      VARIABLE err_sum : integer:=0;
-      VARIABLE irq_req_berr : integer;
-      VARIABLE irq_req_dma : integer;
+      VARIABLE loc_err           : integer:=0;
+      VARIABLE err_sum           : integer:=0;
+      VARIABLE irq_req_berr      : integer;
+      VARIABLE irq_req_dma       : integer;
+      variable var_msi_expected  : std_logic_vector(31 downto 0) := (others => '0');
+      variable var_success       : boolean := false;
+      variable var_msi_allocated : std_logic_vector(2 downto 0) := (others => '0');
+      variable var_check_msi_nbr : natural := 0;
+      constant MSI_SHMEM_ADDR    : natural := 2096896; -- := x"1FFF00" at upper end of shared memory
+      constant MSI_DATA_VAL      : std_logic_vector(15 downto 0) := x"3210";
    BEGIN
       print("Test MEN_01A021_00_IT_0160: VME Bus Error");
-      irq_req_berr := 12;    
-      irq_req_dma := 13;
-      wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001");
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
+      var_success := false;
+      bfm_configure_msi(
+         msi_addr       => MSI_SHMEM_ADDR,
+         msi_data       => MSI_DATA_VAL,
+         msi_allocated  => var_msi_allocated,
+         success        => var_success
+      );
+      if not var_success then 
+         err_sum := err_sum +1;
+         if en_msg_0 >= 1 then 
+            print_now("ERROR(vme_buserror): error while executing bfm_configure_msi() - MSI NOT configured, MSI behavior is UNDEFINED!");
+            print("   ---> test case skipped");
+         end if;
+      else
+         irq_req_berr := 12;    
+         irq_req_dma := 13;
+         wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001");
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
 
-      print (" VME A16/D16 single access");
-      rd32(terminal_in_0, terminal_out_0, VME_A16D16 + x"0000_0000", x"0000_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
-      wait_on_irq_assert(0);
-      IF irq_req(irq_req_berr) = '0' THEN  
-         print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
-      END IF;
-      WAIT FOR 1 us;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0);
-      IF irq_req(irq_req_berr) = '1' THEN  
-         print_time("ERROR vme_dma_sram2pci: dma irq asserted");
-      END IF;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-    
-      
-      print (" VME A24/D16 single access");
-      rd32(terminal_in_0, terminal_out_0, VME_A24D16 + x"0000_0000", x"0000_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
-      wait_on_irq_assert(0);
-      IF irq_req(irq_req_berr) = '0' THEN  
-         print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
-      END IF;
-      WAIT FOR 1 us;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0);
-      IF irq_req(irq_req_berr) = '1' THEN  
-         print_time("ERROR vme_dma_sram2pci: dma irq asserted");
-      END IF;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
+         print (" VME A16/D16 single access");
+         rd32(terminal_in_0, terminal_out_0, VME_A16D16 + x"0000_0000", x"0000_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
+         --wait_on_irq_assert(0);
+         var_check_msi_nbr := 0;
+         bfm_calc_msi_expected(
+            msi_allocated => var_msi_allocated,
+            msi_data      => MSI_DATA_VAL,
+            msi_nbr       => var_check_msi_nbr,
+            msi_expected  => var_msi_expected
+         );
+         var_success := false;
+         bfm_poll_msi(
+            track_msi    => 1,
+            msi_addr     => MSI_SHMEM_ADDR,
+            msi_expected => var_msi_expected,
+            txt_out      => en_msg_0,
+            success      => var_success
+         );
+         if not var_success then 
+            err_sum := err_sum +1;
+            if en_msg_0 >= 1 then print_now("ERROR(vme_buserror): error while executing bfm_poll_msi()"); end if;
+         end if;
 
-      print (" VME A32/D32 single access");
-      rd32(terminal_in_0, terminal_out_0, VME_A32D32 + x"0000_0000", x"ffff_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
-      wait_on_irq_assert(0);
-      IF irq_req(irq_req_berr) = '0' THEN  
-         print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
-      END IF;
-      WAIT FOR 1 us;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0);
-      IF irq_req(irq_req_berr) = '1' THEN  
-         print_time("ERROR vme_dma_sram2pci: dma irq asserted");
-      END IF;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
+         IF irq_req(irq_req_berr) = '0' THEN  
+            print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
+         END IF;
+         WAIT FOR 1 us;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
+         --wait_on_irq_deassert(0);
+         IF irq_req(irq_req_berr) = '1' THEN  
+            print_time("ERROR vme_dma_sram2pci: dma irq asserted");
+         END IF;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+       
+         
+         print (" VME A24/D16 single access");
+         rd32(terminal_in_0, terminal_out_0, VME_A24D16 + x"0000_0000", x"0000_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
+         --wait_on_irq_assert(0);
+         bfm_calc_msi_expected(
+            msi_allocated => var_msi_allocated,
+            msi_data      => MSI_DATA_VAL,
+            msi_nbr       => var_check_msi_nbr,
+            msi_expected  => var_msi_expected
+         );
+         var_success := false;
+         bfm_poll_msi(
+            track_msi    => 1,
+            msi_addr     => MSI_SHMEM_ADDR,
+            msi_expected => var_msi_expected,
+            txt_out      => en_msg_0,
+            success      => var_success
+         );
+         if not var_success then 
+            err_sum := err_sum +1;
+            if en_msg_0 >= 1 then print_now("ERROR(vme_buserror): error while executing bfm_poll_msi()"); end if;
+         end if;
 
-      print (" VME DMA");
-      wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F900", x"0000_0000", 1, en_msg_0, TRUE, "000001");  -- dest adr
-      rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F900", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F904", x"0000_0000", 1, en_msg_0, TRUE, "000001");  -- source adr
-      rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F904", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F908", x"0000_0003", 1, en_msg_0, TRUE, "000001");  -- size
-      rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F908", x"0000_0003", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F90c", x"0002_10e1", 1, en_msg_0, TRUE, "000001");  -- source=A24D32 dest=sram inc
-      rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F90c", x"0002_10e1", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      print(" start DMA transfer");
-      wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0003", 1, en_msg_0, TRUE, "000001");  -- start transfer
+         IF irq_req(irq_req_berr) = '0' THEN  
+            print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
+         END IF;
+         WAIT FOR 1 us;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
+         --wait_on_irq_deassert(0);
+         IF irq_req(irq_req_berr) = '1' THEN  
+            print_time("ERROR vme_dma_sram2pci: dma irq asserted");
+         END IF;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
 
-      wait_on_irq_assert(0);
-      IF irq_req(irq_req_dma) = '0' THEN  
-         print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
-      END IF;
-      WAIT FOR 1 us;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_001e", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_000c", 1, en_msg_0, TRUE, "000001");
-      wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
-      wait_on_irq_deassert(0);
-      IF irq_req(irq_req_dma) = '1' THEN  
-         print_time("ERROR vme_dma_sram2pci: dma irq asserted");
-      END IF;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
-      rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
-      err_sum := err_sum + loc_err;
+         print (" VME A32/D32 single access");
+         rd32(terminal_in_0, terminal_out_0, VME_A32D32 + x"0000_0000", x"ffff_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
+         --wait_on_irq_assert(0);
+         bfm_calc_msi_expected(
+            msi_allocated => var_msi_allocated,
+            msi_data      => MSI_DATA_VAL,
+            msi_nbr       => var_check_msi_nbr,
+            msi_expected  => var_msi_expected
+         );
+         var_success := false;
+         bfm_poll_msi(
+            track_msi    => 1,
+            msi_addr     => MSI_SHMEM_ADDR,
+            msi_expected => var_msi_expected,
+            txt_out      => en_msg_0,
+            success      => var_success
+         );
+         if not var_success then 
+            err_sum := err_sum +1;
+            if en_msg_0 >= 1 then print_now("ERROR(vme_buserror): error while executing bfm_poll_msi()"); end if;
+         end if;
 
+         IF irq_req(irq_req_berr) = '0' THEN  
+            print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
+         END IF;
+         WAIT FOR 1 us;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
+         --wait_on_irq_deassert(0);
+         IF irq_req(irq_req_berr) = '1' THEN  
+            print_time("ERROR vme_dma_sram2pci: dma irq asserted");
+         END IF;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+
+         print (" VME DMA");
+         wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F900", x"0000_0000", 1, en_msg_0, TRUE, "000001");  -- dest adr
+         rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F900", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F904", x"0000_0000", 1, en_msg_0, TRUE, "000001");  -- source adr
+         rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F904", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F908", x"0000_0003", 1, en_msg_0, TRUE, "000001");  -- size
+         rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F908", x"0000_0003", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F90c", x"0002_10e1", 1, en_msg_0, TRUE, "000001");  -- source=A24D32 dest=sram inc
+         rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F90c", x"0002_10e1", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         print(" start DMA transfer");
+         wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0003", 1, en_msg_0, TRUE, "000001");  -- start transfer
+
+         --wait_on_irq_assert(0);
+         bfm_calc_msi_expected(
+            msi_allocated => var_msi_allocated,
+            msi_data      => MSI_DATA_VAL,
+            msi_nbr       => var_check_msi_nbr,
+            msi_expected  => var_msi_expected
+         );
+         var_success := false;
+         bfm_poll_msi(
+            track_msi    => 1,
+            msi_addr     => MSI_SHMEM_ADDR,
+            msi_expected => var_msi_expected,
+            txt_out      => en_msg_0,
+            success      => var_success
+         );
+         if not var_success then 
+            err_sum := err_sum +1;
+            if en_msg_0 >= 1 then print_now("ERROR(vme_buserror): error while executing bfm_poll_msi()"); end if;
+         end if;
+
+         IF irq_req(irq_req_dma) = '0' THEN  
+            print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
+         END IF;
+         WAIT FOR 1 us;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_001e", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_000c", 1, en_msg_0, TRUE, "000001");
+         wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
+         --wait_on_irq_deassert(0);
+         IF irq_req(irq_req_dma) = '1' THEN  
+            print_time("ERROR vme_dma_sram2pci: dma irq asserted");
+         END IF;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+      end if;
 
       err := err_sum;
       print_err("vme_buserror", err_sum);
@@ -3225,27 +3322,23 @@ PACKAGE BODY terminal_pkg IS
                en_msg_0       : integer;
                err            : OUT natural
                ) IS
-      VARIABLE loc_err : integer:=0;
-      VARIABLE err_sum : integer:=0;
-      VARIABLE dat : std_logic_vector(31 DOWNTO 0);
-      variable var_msi_expected : std_logic_vector(31 downto 0) := (others => '0');
-      variable var_success      : boolean := false;
-      constant MSI_SHMEM_ADDR   : natural := 2096896; -- := x"1FFF00" at upper end of shared memory
-      --constant MSI_SHMEM_ADDR : natural := 0; -- := x"1FFF70" at upper end of shared memory
+      VARIABLE loc_err           : integer:=0;
+      VARIABLE err_sum           : integer:=0;
+      VARIABLE dat               : std_logic_vector(31 DOWNTO 0);
+      variable var_msi_expected  : std_logic_vector(31 downto 0) := (others => '0');
+      variable var_success       : boolean := false;
+      variable var_msi_allocated : std_logic_vector(2 downto 0) := (others => '0');
+      constant MSI_SHMEM_ADDR    : natural := 2096896; -- := x"1FFF00" at upper end of shared memory
+      constant MSI_DATA_VAL      : std_logic_vector(15 downto 0) := x"3210";
    BEGIN
       print("Test MEN_01A021_00_IT_0090: Interrupt Handler");
       var_success := false;
       bfm_configure_msi(
-         msi_addr     => MSI_SHMEM_ADDR,
-         msi_data     => x"0011",
-         msi_expected => var_msi_expected,
-         success      => var_success
+         msi_addr       => MSI_SHMEM_ADDR,
+         msi_data       => MSI_DATA_VAL,
+         msi_allocated  => var_msi_allocated,
+         success        => var_success
       );
---TODO: remove
-print_now(" *** DEBUG: after bfm_configure_msi()");
-print_s_hl("var_msi_expected = ", var_msi_expected);
-report "bfm_configure_msi var_success = " & boolean'image(var_success);
---report "=== STOP ===" severity failure;
       if not var_success then 
          err_sum := err_sum +1;
          if en_msg_0 >= 1 then 
@@ -3260,8 +3353,14 @@ report "bfm_configure_msi var_success = " & boolean'image(var_success);
          WAIT FOR 150 ns;
       
          FOR i IN 1 TO 7 LOOP
+            bfm_calc_msi_expected(
+               msi_allocated => var_msi_allocated,
+               msi_data      => MSI_DATA_VAL,
+               msi_nbr       => i,
+               msi_expected  => var_msi_expected
+            );
+
             irq_vme_slv (vme_slv_in, vme_slv_out, i, x"00"+i);
-            --wait_on_irq_assert(0);
             var_success := false;
             bfm_poll_msi(
                track_msi    => 1,

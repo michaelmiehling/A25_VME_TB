@@ -633,10 +633,10 @@ begin
                   bfm_rd_mem32(
                      bar_num    => var_bar_num,
                      bar_offset => var_bar_offset,
-                     byte_count   => byte_count,
-                     ref_data32   => data_vec,
-                     data32_out   => return_data_vec,
-                     success      => success_int
+                     byte_count => byte_count,
+                     ref_data32 => data_vec,
+                     data32_out => return_data_vec,
+                     success    => success_int
                   );
                end if;
             elsif term_out.tga(1 downto 0) = CONFIG_TRANSFER then               -- configuration type 0 

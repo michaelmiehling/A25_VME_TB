@@ -189,10 +189,17 @@ package pcie_sim_pkg is
    );
 
    procedure bfm_configure_msi(
-      constant msi_addr     : in  natural;                                      -- MSI address in shared memory
-      msi_data              : in  std_logic_vector(15 downto 0);                -- contained in MSI message
-      variable msi_expected : out std_logic_vector(31 downto 0);                -- expected data value for MSI
-      success               : out boolean
+      constant msi_addr : in  natural;                                          -- MSI address in shared memory
+      msi_data          : in  std_logic_vector(15 downto 0);                    -- contained in MSI message
+      msi_allocated     : out  std_logic_vector(2 downto 0);                    -- amount of allocated MSI
+      success           : out boolean
+   );
+
+   procedure bfm_calc_msi_expected(
+      constant msi_allocated : in  std_logic_vector(2 downto 0);                -- amount of allocated MSI
+      constant msi_data      : in  std_logic_vector(15 downto 0);               -- MSI data value as programmed to config space
+      constant msi_nbr       : in  integer range 32 downto 0;
+      variable msi_expected  : out std_logic_vector(31 downto 0)                -- MSI vector as expected from EP
    );
 
    procedure bfm_poll_msi(
@@ -468,10 +475,11 @@ package body pcie_sim_pkg is
       data32_out : out std_logic_vector(31 downto 0);
       success    : out boolean
    ) is
-      variable var_byte_len   : natural := 0;
-      variable var_pass       : boolean := true;
-      variable var_databuf    : dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
-      variable var_local_addr : natural := 0;
+      variable var_byte_len    : natural := 0;
+      variable var_pass        : boolean := true;
+      variable var_databuf     : dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
+      variable var_local_addr  : natural := 0;
+      variable var_byte_offset : natural := 0;
    begin
       var_pass   := true;
       data32_out := (others => '0');
@@ -493,21 +501,43 @@ package body pcie_sim_pkg is
       if byte_en(3) = '1' then
          var_byte_len := var_byte_len +1;
       end if;
-      print_s_i("var_byte_len = ", var_byte_len);
-      
+
+      --------------------------------------------------------------------
+      -- bar_offset is DW aligned thus prepared for 32bit transfers
+      -- adapt for byte offset
+      --------------------------------------------------------------------
+      case byte_en is
+         when "0001" =>
+            var_byte_offset := 0;
+         when "0010" =>
+            var_byte_offset := 1;
+         when "0100" =>
+            var_byte_offset := 2;
+         when "1000" =>
+            var_byte_offset := 3;
+         when "0011" =>
+            var_byte_offset := 0;
+         when "1100" =>
+            var_byte_offset := 2;
+         when "1111" =>
+            var_byte_offset := 0;
+         when others =>
+            var_byte_offset := 0;
+      end case;
+
       var_local_addr := 0;
       ebfm_barrd_wait(
          bar_table   => BAR_TABLE_POINTER,
          bar_num     => bar_num,
-         pcie_offset => bar_offset,
-         lcladdr     => var_local_addr,
+         pcie_offset => (bar_offset + var_byte_offset),
+         lcladdr     => (var_local_addr + var_byte_offset),
          byte_len    => var_byte_len,
          tclass      => 0
       );
 
       get_bfm_memory(
          nbr_of_dw   => 1,
-         mem_addr    => std_logic_vector(to_unsigned(var_local_addr,32)), --x"0000_0000",
+         mem_addr    => std_logic_vector(to_unsigned(var_local_addr,32)),
          databuf_out => var_databuf
       );
 
@@ -731,10 +761,10 @@ package body pcie_sim_pkg is
    end procedure;
 
    procedure bfm_configure_msi(
-      constant msi_addr     : in  natural;                                      -- MSI address in shared memory
-      msi_data              : in  std_logic_vector(15 downto 0);                -- contained in MSI message
-      variable msi_expected : out std_logic_vector(31 downto 0);                -- expected data value for MSI
-      success               : out boolean
+      constant msi_addr : in  natural;                                      -- MSI address in shared memory
+      msi_data          : in  std_logic_vector(15 downto 0);                -- contained in MSI message
+      msi_allocated     : out  std_logic_vector(2 downto 0);                -- amount of allocated MSI
+      success           : out boolean
    ) is
       function check_compl_status(
          compl_status : in std_logic_vector(2 downto 0)
@@ -770,8 +800,6 @@ package body pcie_sim_pkg is
       variable var_multi_mess_en : std_logic_vector(2 downto 0) := (others => '0');
       variable var_msi_en        : std_logic := '0';
       variable var_compl_status  : std_logic_vector(2 downto 0) := (others => '0');
-      variable var_msi_expected  : std_logic_vector(31 downto 0) := (others => '0');
-      variable var_msi_nbr       : std_logic_vector(4 downto 0) := (others => '0');
       variable var_msi_addr      : std_logic_vector(31 downto 0) := (others => '0');
    begin 
       var_pass     := true;
@@ -811,27 +839,8 @@ package body pcie_sim_pkg is
                      var_msi_en & x"0000"),
          compl_status => var_compl_status
       );
-      var_pass := check_compl_status(var_compl_status);
-
-      -- define expected msi message
-      var_msi_nbr := "00001";
-      if (var_multi_mess_en = "000") then
-          var_msi_expected := x"0000" & msi_data(15 downto 0);
-      elsif (var_multi_mess_en = "001") then
-          var_msi_expected := x"0000" & msi_data(15 downto 1) & var_msi_nbr(0 downto 0);
-      elsif (var_multi_mess_en = "010") then
-          var_msi_expected := x"0000" & msi_data(15 downto 2) & var_msi_nbr(1 downto 0);
-      elsif (var_multi_mess_en = "011") then
-          var_msi_expected := x"0000" & msi_data(15 downto 3) & var_msi_nbr(2 downto 0);
-      elsif (var_multi_mess_en = "100") then
-          var_msi_expected := x"0000" & msi_data(15 downto 4) & var_msi_nbr(3 downto 0);
-      elsif (var_multi_mess_en = "101") then
-          var_msi_expected := x"0000" & msi_data(15 downto 5) & var_msi_nbr(4 downto 0);
-      else
-         print_now("ERROR(bfm_configure_msi): illegal value for multi message enable, can't configure MSI");
-         var_pass := false;
-      end if;
-      msi_expected := var_msi_expected;
+      var_pass      := check_compl_status(var_compl_status);
+      msi_allocated := var_multi_mess_en;
 
       -- program all msi capability registers (64 and 32 bit!)
       if var_msi_is_64b = "1" then -- 64bit addressing
@@ -903,6 +912,58 @@ package body pcie_sim_pkg is
 
       success := var_pass;
    end procedure;
+
+   procedure bfm_calc_msi_expected(
+      constant msi_allocated : in  std_logic_vector(2 downto 0);                -- amount of allocated MSI
+      constant msi_data      : in  std_logic_vector(15 downto 0);               -- MSI data value as programmed to config space
+      constant msi_nbr       : in  integer range 32 downto 0;
+      variable msi_expected  : out std_logic_vector(31 downto 0)                -- MSI vector as expected from EP
+   ) is
+      variable var_msi_expected    : std_logic_vector(31 downto 0);
+      variable var_msi_nbr         : std_logic_vector(4 downto 0) := (others => '0');
+      variable var_max_msi_allowed : integer range 32 downto 1 := 1;
+   begin
+      -- calculate MSI number
+      case msi_allocated is
+         when "000" =>
+            var_max_msi_allowed := 1;
+         when "001" =>
+            var_max_msi_allowed := 2;
+         when "010" =>
+            var_max_msi_allowed := 4;
+         when "011" =>
+            var_max_msi_allowed := 8;
+         when "100" =>
+            var_max_msi_allowed := 16;
+         when "101" =>
+            var_max_msi_allowed := 32;
+         when others =>
+            var_max_msi_allowed := 1;
+      end case;
+
+      -----------------------------------------------------------------------------
+      -- if we use more MSI than are allocated then wrap the number automatically
+      -----------------------------------------------------------------------------
+      var_msi_nbr := std_logic_vector(to_unsigned((msi_nbr mod var_max_msi_allowed),5));
+
+      if (msi_allocated = "000") then
+          var_msi_expected := x"0000" & msi_data(15 downto 0);
+      elsif (msi_allocated = "001") then
+          var_msi_expected := x"0000" & msi_data(15 downto 1) & var_msi_nbr(0 downto 0);
+      elsif (msi_allocated = "010") then
+          var_msi_expected := x"0000" & msi_data(15 downto 2) & var_msi_nbr(1 downto 0);
+      elsif (msi_allocated = "011") then
+          var_msi_expected := x"0000" & msi_data(15 downto 3) & var_msi_nbr(2 downto 0);
+      elsif (msi_allocated = "100") then
+          var_msi_expected := x"0000" & msi_data(15 downto 4) & var_msi_nbr(3 downto 0);
+      elsif (msi_allocated = "101") then
+          var_msi_expected := x"0000" & msi_data(15 downto 5) & var_msi_nbr(4 downto 0);
+      else
+         print_now("ERROR(bfm_calc_msi_expected): illegal value for multi message enable");
+         var_msi_expected := "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+      end if;
+      msi_expected := var_msi_expected;
+   end procedure;
     
    procedure bfm_poll_msi(
       constant track_msi    : in natural;
@@ -911,7 +972,7 @@ package body pcie_sim_pkg is
       constant txt_out      : in integer;
       success               : out boolean
    ) is
-      constant POLLING_TIMEOUT  : natural :=  2048;
+      constant POLLING_TIMEOUT  : natural :=  5 * 2048;
       variable var_pass         : boolean := true;
       variable var_loop_val     : natural range 1 downto 0 := 1;
       variable var_poll_timer   : natural := 0;
@@ -919,35 +980,21 @@ package body pcie_sim_pkg is
    begin
       var_pass := true;
 
-      track_msi_loop : for i in 0 to track_msi loop
+      --track_msi_loop : for i in 0 to track_msi loop
+      track_msi_loop : for i in 1 to track_msi loop
          if txt_out >=2 then print_s_i("bfm_poll_msi(): tracking MSI number: ", i); end if;
 
          var_loop_val := 1;
          while var_loop_val = 1 loop
-            --wait for 10 ns;
-            wait for 10 us;
+            wait for 10 ns;
+            --wait for 10 us;
             var_poll_timer := var_poll_timer +1;
 
---TODO: remove
-print("");
-print("+------------------------------------------------------------------+");
-print_now("*** DEBUG - bfm_poll_msi() ***");
-print_s_hl("msi_addr = ", std_logic_vector(to_unsigned(msi_addr,32)));
             var_msi_received := (others => '0');
-print_s_hw("var_msi_received = ", var_msi_received);
-print_now("*** before shmemread");
             var_msi_received := shmem_read(msi_addr, 2);
-print_now("*** after shmemread");
-print_s_hw("var_msi_received = ", var_msi_received);
-print_s_hl("msi_expected(31 downto 0) = ", msi_expected);
-print_s_hw("msi_expected(15 downto 0) = ", msi_expected(15 downto 0));
-print("+------------------------------------------------------------------+");
-print("");
 
             if var_msi_received = msi_expected(15 downto 0) then
                -- clear shared memory location and exit polling loop
---TODO: remove
-print_now("bfm_poll_msi(): received correct data value, now clearing shared memory...");
                shmem_write(msi_addr, x"FADE_FADE", 4);
                var_loop_val := 0;
             end if;
@@ -959,8 +1006,6 @@ print_now("bfm_poll_msi(): received correct data value, now clearing shared memo
                   print_now("ERROR(bfm_poll_msi): no MSI captured within timeout time");
                end if;
                success := var_pass;
---TODO: remove
-report "*** DEBUG *** STOP DUE TO POLLING TIMER TIMEOUT" severity failure;
                exit track_msi_loop;
             end if;
          end loop;

@@ -330,12 +330,12 @@ work.a25_tb_conf
 #add wave sim:/a25_tb/vme_bus/vmesimmstr/*
 
 #log -r /*
-add wave -divider {Hard IP}
-add wave \
-   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/pclk_in \
-   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/clk250_out \
-   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/pld_clk
-
+#add wave -divider {Hard IP}
+#add wave \
+#   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/pclk_in \
+#   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/clk250_out \
+#   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/pld_clk
+#
 add wave -divider {PCIe EP}
 add wave \
    /a25_tb/a25/pcie/clk250_int \
@@ -355,39 +355,39 @@ add wave \
 add wave -group {all EP ports}\
    /a25_tb/a25/pcie/*
 
-add wave -divider {BFM}
-add wave \
-   -literal -hex /a25_tb/pcie_sim_inst/bar_addr \
-   /a25_tb/pcie_sim_inst/bar_limit \
-   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar0_addr \
-   -dec /a25_tb/pcie_sim_inst/main/var_bar0_limit \
-   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar1_addr \
-   -dec /a25_tb/pcie_sim_inst/main/var_bar1_limit \
-   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar2_addr \
-   -dec /a25_tb/pcie_sim_inst/main/var_bar2_limit \
-   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar3_addr \
-   -dec /a25_tb/pcie_sim_inst/main/var_bar3_limit \
-   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar4_addr \
-   -dec /a25_tb/pcie_sim_inst/main/var_bar4_limit \
-   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar5_addr \
-   -dec /a25_tb/pcie_sim_inst/main/var_bar5_limit \
-   /a25_tb/pcie_sim_inst/ep_clk250_i \
-   /a25_tb/pcie_sim_inst/bfm_inst/rp/pclk_in \
-   /a25_tb/pcie_sim_inst/bfm_inst/app_int_sts \
-   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_ack \
-   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_req \
-   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_tc \
-   /a25_tb/pcie_sim_inst/bfm_inst/cfg_msicsr
-
+#add wave -divider {BFM}
+#add wave \
+#   -literal -hex /a25_tb/pcie_sim_inst/bar_addr \
+#   /a25_tb/pcie_sim_inst/bar_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar0_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar0_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar1_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar1_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar2_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar2_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar3_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar3_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar4_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar4_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar5_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar5_limit \
+#   /a25_tb/pcie_sim_inst/ep_clk250_i \
+#   /a25_tb/pcie_sim_inst/bfm_inst/rp/pclk_in \
+#   /a25_tb/pcie_sim_inst/bfm_inst/app_int_sts \
+#   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_ack \
+#   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_req \
+#   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_tc \
+#   /a25_tb/pcie_sim_inst/bfm_inst/cfg_msicsr
+#
 add wave -group {all BFM ports} \
    /a25_tb/pcie_sim_inst/bfm_inst/crst \
    /a25_tb/pcie_sim_inst/bfm_inst/srst \
    /a25_tb/pcie_sim_inst/*
 
-add wave -divider {testbench}
-add wave \
-   /a25_tb/ep_clk250_int
-
+#add wave -divider {testbench}
+#add wave \
+#   /a25_tb/ep_clk250_int
+#
 add wave -divider {DEBUG}
 
 # next 5 lines are for debugging only, remove later
