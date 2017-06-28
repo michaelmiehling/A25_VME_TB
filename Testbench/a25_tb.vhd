@@ -39,10 +39,12 @@ USE ieee.std_logic_1164.ALL;
 USE work.fpga_pkg_2.ALL;
 USE work.vme_sim_pack.all;
 USE work.terminal_pkg.all;
-USE work.pcie_x1_pkg.ALL;
+use work.pcie_sim_pkg.all;
 
 ENTITY a25_tb IS
-
+   generic(
+      BFM_LANE_WIDTH : integer range 8 downto 0 := 1                            -- set configuration: 1=x1, 2=x2, 4=x4 and 8=x8
+   );
 END a25_tb;
 
 ARCHITECTURE a25_tb_arch OF a25_tb IS 
@@ -50,6 +52,7 @@ COMPONENT A25_top
 GENERIC (
    SIMULATION        : boolean                        := FALSE;
    FPGA_FAMILY       : family_type := CYCLONE4;
+   BFM_LANE_WIDTH    : integer range 8 downto 0 := 1;                           -- set configuration: 1=x1, 2=x2, 4=x4 and 8=x8
    sets              : std_logic_vector(3 DOWNTO 0) := "1110";
    timeout           : integer := 5000 );
 PORT (
@@ -122,7 +125,27 @@ PORT (
    vme_acfail_i_n    : IN std_logic;
    vme_sysclk        : OUT std_logic;
    vme_bg_i_n        : IN std_logic_vector(3 DOWNTO 0);
-   vme_bg_o_n        : OUT std_logic_vector(3 DOWNTO 0)
+   vme_bg_o_n        : OUT std_logic_vector(3 DOWNTO 0);
+
+   -- Hard IP BFM connections
+   ep_rxvalid_i    : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);       -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_rxstatus_i   : in  std_logic_vector(3*BFM_LANE_WIDTH -1 downto 0);     -- 3bits per lane, [2:0]=lane0, [5:3]=lane1 etc.
+   ep_rxdatak_i    : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);       -- 1bits per lane, [0]=lane0, [1]=lane1 etc.
+   ep_rxdata_i     : in  std_logic_vector(8*BFM_LANE_WIDTH -1 downto 0);     -- 8bits per lane, [7:0]=lane0, [15:8]=lane1 etc.
+   ep_rxelecidle_i : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);       -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_phystatus_i  : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);       -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   
+   ep_clk250_o        : out std_logic;                                       -- endpoint SERDES 250MHz clk output
+   ep_clk500_o        : out std_logic;                                       -- endpoint SERDES 500MHz clk output
+   ep_rate_ext_o      : out std_logic;                                       -- endpoint rate_ext
+   ep_powerdown_ext_o : out std_logic_vector(2*BFM_LANE_WIDTH -1 downto 0);  -- 2bits per lane, [1:0]=lane0, [3:2]=lane1 etc.
+   ep_txdatak_o       : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_txdata_o        : out std_logic_vector(8*BFM_LANE_WIDTH -1 downto 0);  -- 8bits per lane, [7:0]=lane0, [15:8]=lane1 etc.
+   ep_txcompl_o       : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_txelecidle_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_txdetectrx_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_rxpolarity_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+   ep_ltssm_o         : out std_logic_vector(4 downto 0)
    );
 END COMPONENT;
 
@@ -256,28 +279,44 @@ PORT (
      );
 END COMPONENT;
    
-COMPONENT pcie_x1_sim 
+component pcie_sim
    generic(
-      INSTANCE_NBR   : integer range  3 downto  0 :=  0;                        -- nbr of BFM instance
-      BFM_IO_SIZE    : integer range 24 downto 12 := 16;                        -- 12 <= x <= 24
-      BFM_MEM32_SIZE : integer range 24 downto 12 := 16;                        -- 12 <= x <= 24
-      BFM_MEM64_SIZE : integer range 24 downto 12 := 16                         -- 12 <= x <= 24
+      BFM_LANE_WIDTH : integer range 8 downto 0 := 1                            -- set configuration: 1=x1, 2=x2, 4=x4 and 8=x8
    );
    port(
-      clk       : in  std_logic;
-      rst       : in  std_logic;
-    
-      -- BFM signals
-      clk125    : in  std_logic;
-      clk250    : in  std_logic;
-      rstn      : in  std_logic;
-      bfm_tx_0  : in  std_logic;
-      bfm_rx_0  : out std_logic;
-    
+      rst_i       : in  std_logic;
+      pcie_rstn_i : in  std_logic;
+      clk_i       : in  std_logic;
+      ep_clk250_i : in  std_logic;                                              -- endpoint SERDES 250MHz clk output
+      ep_clk500_i : in  std_logic;                                              -- endpoint SERDES 500MHz clk output
+
+      -- PCIe lanes
+      bfm_tx_i : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+      bfm_rx_o : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+
+      -- PCIe SERDES connection,  in/out references are BFM view
+      ep_rate_ext_i      : in  std_logic;                                       -- endpoint rate_ext
+      ep_powerdown_ext_i : in  std_logic_vector(2*BFM_LANE_WIDTH -1 downto 0);  -- 2bits per lane, [1:0]=lane0, [3:2]=lane1 etc.
+      ep_txdatak_i       : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_txdata_i        : in  std_logic_vector(8*BFM_LANE_WIDTH -1 downto 0);  -- 8bits per lane, [7:0]=lane0, [15:8]=lane1 etc.
+      ep_txcompl_i       : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_txelecidle_i    : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_txdetectrx_i    : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_rxpolarity_i    : in  std_logic_vector(BFM_LANE_WIDTH -1 downto 0);    -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_ltssm_i         : in  std_logic_vector(4 downto 0);
+
+      ep_rxvalid_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);       -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_rxstatus_o   : out std_logic_vector(3*BFM_LANE_WIDTH -1 downto 0);     -- 3bits per lane, [2:0]=lane0, [5:3]=lane1 etc.
+      ep_rxdatak_o    : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);       -- 1bits per lane, [0]=lane0, [1]=lane1 etc.
+      ep_rxdata_o     : out std_logic_vector(8*BFM_LANE_WIDTH -1 downto 0);     -- 8bits per lane, [7:0]=lane0, [15:8]=lane1 etc.
+      ep_rxelecidle_o : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);       -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+      ep_phystatus_o  : out std_logic_vector(BFM_LANE_WIDTH -1 downto 0);       -- 1bit per lane, [0]=lane0, [1]=lane1 etc.
+
+      -- MEN terminal connection, in/out references are terminal view
       term_out : in  terminal_out_type;
       term_in  : out terminal_in_type
    );
-END COMPONENT;
+end component;
 
    CONSTANT T_FPGA_TO_SRAM  : time := 0 ns;
 
@@ -414,6 +453,26 @@ END COMPONENT;
    SIGNAL dummy          : std_logic:='1';
    SIGNAL slot1          : boolean;
 
+   -- Hard IP BFM connections
+   signal ep_rxvalid_int    : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+   signal ep_rxstatus_int   : std_logic_vector(3*BFM_LANE_WIDTH -1 downto 0);
+   signal ep_rxdatak_int    : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+   signal ep_rxdata_int     : std_logic_vector(8*BFM_LANE_WIDTH -1 downto 0);
+   signal ep_rxelecidle_int : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+   signal ep_phystatus_int  : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+
+   signal ep_clk250_int        : std_logic;
+   signal ep_clk500_int        : std_logic;
+   signal ep_rate_ext_int      : std_logic;
+   signal ep_powerdown_ext_int : std_logic_vector(2*BFM_LANE_WIDTH -1 downto 0);
+   signal ep_txdatak_int       : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+   signal ep_txdata_int        : std_logic_vector(8*BFM_LANE_WIDTH -1 downto 0);
+   signal ep_txcompl_int       : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+   signal ep_txelecidle_int    : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+   signal ep_txdetectrx_int    : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+   signal ep_rxpolarity_int    : std_logic_vector(BFM_LANE_WIDTH -1 downto 0);
+   signal ep_ltssm_int         : std_logic_vector(4 downto 0);
+
 BEGIN
    -- high active signals on A25
    vme_irq_o_n     <= NOT vme_irq_o     ;
@@ -434,6 +493,7 @@ a25: A25_top
 GENERIC MAP (
    SIMULATION        => TRUE,
    FPGA_FAMILY       =>  CYCLONE4,
+   BFM_LANE_WIDTH    => BFM_LANE_WIDTH,
    sets              => "1110",
    timeout           => 5000 
    )
@@ -503,7 +563,27 @@ PORT MAP (
    vme_acfail_i_n    => vme_acfail_i_n   ,
    vme_sysclk        => vme_sysclk       ,
    vme_bg_i_n        => vme_bg_i_n       ,
-   vme_bg_o_n        => vme_bg_o_n       
+   vme_bg_o_n        => vme_bg_o_n,
+
+   -- Hard IP BFM connections
+   ep_rxvalid_i    => ep_rxvalid_int,
+   ep_rxstatus_i   => ep_rxstatus_int,
+   ep_rxdatak_i    => ep_rxdatak_int,
+   ep_rxdata_i     => ep_rxdata_int,
+   ep_rxelecidle_i => ep_rxelecidle_int,
+   ep_phystatus_i  => ep_phystatus_int,
+   
+   ep_clk250_o        => ep_clk250_int,
+   ep_clk500_o        => ep_clk500_int,
+   ep_rate_ext_o      => ep_rate_ext_int,
+   ep_powerdown_ext_o => ep_powerdown_ext_int,
+   ep_txdatak_o       => ep_txdatak_int,
+   ep_txdata_o        => ep_txdata_int,
+   ep_txcompl_o       => ep_txcompl_int,
+   ep_txelecidle_o    => ep_txelecidle_int,
+   ep_txdetectrx_o    => ep_txdetectrx_int,
+   ep_rxpolarity_o    => ep_rxpolarity_int,
+   ep_ltssm_o         => ep_ltssm_int
    );
 
    clk_16mhz_int <= NOT clk_16mhz_int AFTER 31.25 ns;
@@ -513,25 +593,42 @@ PORT MAP (
    clk_250 <= NOT clk_250 AFTER 2 ns;    -- 250 MHz
    hreset <= NOT hreset_n;
    
-pcie_sim: pcie_x1_sim 
-   GENERIC MAP (
-      INSTANCE_NBR   => 0,                         -- nbr of BFM instance
-      BFM_IO_SIZE    => 12,                        -- 12 <= x <= 24
-      BFM_MEM32_SIZE => 12,                        -- 12 <= x <= 24
-      BFM_MEM64_SIZE => 12                         -- 12 <= x <= 24
+pcie_sim_inst: pcie_sim
+   generic map(
+      BFM_LANE_WIDTH => BFM_LANE_WIDTH
    )
-   PORT MAP (
-      clk            => refclk,
-      rst            => hreset,
-                     
-      clk125         => clk_125,
-      clk250         => clk_250,
-      rstn           => hreset_n,
-      bfm_tx_0       => pcie_tx(0),
-      bfm_rx_0       => pcie_rx(0),
-                     
-      term_out       => terminal_out_0 ,
-      term_in        => terminal_in_0
+   port map(
+      rst_i       => hreset,
+      pcie_rstn_i => hreset_n,
+      clk_i       => refclk,
+      ep_clk250_i => ep_clk250_int,
+      ep_clk500_i => ep_clk500_int,
+
+      -- PCIe lanes
+      bfm_tx_i => pcie_tx(BFM_LANE_WIDTH -1 downto 0),
+      bfm_rx_o => pcie_rx(BFM_LANE_WIDTH -1 downto 0),
+
+      -- PCIe SERDES connection,  in/out references are BFM view
+      ep_rate_ext_i      => ep_rate_ext_int,
+      ep_powerdown_ext_i => ep_powerdown_ext_int,
+      ep_txdatak_i       => ep_txdatak_int,
+      ep_txdata_i        => ep_txdata_int,
+      ep_txcompl_i       => ep_txcompl_int,
+      ep_txelecidle_i    => ep_txelecidle_int,
+      ep_txdetectrx_i    => ep_txdetectrx_int,
+      ep_rxpolarity_i    => ep_rxpolarity_int,
+      ep_ltssm_i         => ep_ltssm_int,
+
+      ep_rxvalid_o    => ep_rxvalid_int,
+      ep_rxstatus_o   => ep_rxstatus_int,
+      ep_rxdatak_o    => ep_rxdatak_int,
+      ep_rxdata_o     => ep_rxdata_int,
+      ep_rxelecidle_o => ep_rxelecidle_int,
+      ep_phystatus_o  => ep_phystatus_int,
+
+      -- MEN terminal connection, in/out references are terminal view
+      term_out => terminal_out_0,
+      term_in  => terminal_in_0
    );
 
 
