@@ -132,6 +132,7 @@ package pcie_sim_pkg is
    procedure bfm_wr_mem32(
       bar_num    : in  natural;
       bar_offset : in  natural;
+      byte_count : in  natural range 4 downto 1;
       data32     : in  std_logic_vector(31 downto 0);
       success    : out boolean
    );
@@ -310,7 +311,6 @@ package body pcie_sim_pkg is
          bar_table          => BAR_TABLE_POINTER, -- defined in BFM shared memory
          ep_bus_num         => 1,
          ep_dev_num         => 1,
-         --rp_max_rd_req_size => natural(max_payloadsize),
          rp_max_rd_req_size => max_payloadsize,
          display_ep_config  => 1, -- display config space after endpoint config setup
          addr_map_4GB_limit => 0  -- limit BAR assignment to 4GB address map
@@ -325,17 +325,10 @@ package body pcie_sim_pkg is
       start_data_val : in std_logic_vector(31 downto 0);
       data_inc       : in integer
    ) is
-      --variable bfm_databuf  : dword_vector(nbr_of_dw -1 downto 0);
       variable var_byte_len : integer;
       variable var_addr     : natural;
       variable var_data_buf : std_logic_vector(nbr_of_dw *32 -1 downto 0);
    begin
-      --print_now("BFM: set BFM internal memory");
-      --print_s_i("BFM: number of dwords = ",nbr_of_dw);
-      --print_s_std("BFM: start address = ", mem_addr);
-      --print_s_std("BFM: initial data value = ", start_data_val);
-      --print_s_i("BFM: data value increment = ",data_inc);
-
       for i in 0 to nbr_of_dw -1 loop
          var_data_buf(i*32+31 downto i*32) := std_logic_vector(unsigned(start_data_val) + to_unsigned(i*data_inc,32));
       end loop;
@@ -366,11 +359,8 @@ package body pcie_sim_pkg is
       if nbr_of_dw > BFM_BUFFER_MAX_SIZE then
          print_now("BFM ERROR in get_bfm_memory(): nbr_of_dw exceeds BFM_BUFFER_MAX_SIZE");
       else
-         --print_now("BFM: get values from BFM internal memory");
-         --print_s_i("BFM: number of dwords = ",nbr_of_dw);
-         
-         var_byte_len := natural(nbr_of_dw *4);
-         var_addr     := to_integer(unsigned(mem_addr));
+         var_byte_len  := natural(nbr_of_dw *4);
+         var_addr      := to_integer(unsigned(mem_addr));
          var_data_buf  := shmem_read(addr => var_addr, leng => var_byte_len);
 
          for i in 0 to nbr_of_dw -1 loop
@@ -384,6 +374,7 @@ package body pcie_sim_pkg is
    procedure bfm_wr_mem32(
       bar_num    : in  natural;
       bar_offset : in  natural;
+      byte_count : in  natural range 4 downto 1;
       data32     : in  std_logic_vector(31 downto 0);
       success    : out boolean
    ) is
@@ -399,7 +390,7 @@ package body pcie_sim_pkg is
       shmem_write(
          addr => var_local_addr,
          data => data32,
-         leng => 4                                                              -- length in bytes
+         leng => byte_count --4                                                              -- length in bytes
       );
 
       ---------------------------
@@ -410,7 +401,7 @@ package body pcie_sim_pkg is
          bar_num     => bar_num,
          pcie_offset => bar_offset,
          lcladdr     => var_local_addr,                                         -- shmem address
-         byte_len    => 4,
+         byte_len    => byte_count, --4,
          tclass      => 0
       );
 

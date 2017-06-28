@@ -434,7 +434,6 @@ architecture pcie_sim_arch of pcie_sim is
    signal bfm_test_in_int : std_logic_vector(31 downto 0);
    signal bfm_irq_int     : std_logic_vector(5 downto 0);
    signal bfm_ltssm_rp    : std_logic_vector(4 downto 0);
-   --signal bfm_ltssm_ep    : std_logic_vector(4 downto 0);
    signal test_out_int    : std_logic_vector(511 downto 0);
 
    signal bfm_txdata_0_int  : std_logic_vector(7 downto 0);
@@ -509,7 +508,6 @@ begin
    bfm_test_in_int(0)           <= '1';                                         -- speed up simulation by making counters faster than normal
 
    bfm_ltssm_rp <= test_out_int(324 downto 320);
-   --bfm_ltssm_ep <= test_out_int(4 downto 0);
 
    --bfm_rx_o                               <= bfm_rx_int(BFM_LANE_WIDTH -1 downto 0);
    --bfm_tx_int(BFM_LANE_WIDTH -1 downto 0) <= bfm_tx_i;
@@ -580,10 +578,11 @@ begin
          -- set values for this run
          ----------------------------
          addr32_int := term_out.adr(31 downto 2) & "00";
-         byte_count := term_out.numb *4;
+         --byte_count := term_out.numb *4;
          bfm_id     := to_integer(unsigned(term_out.tga(3 downto 2)));
 
          if term_out.typ = 0 then                                               -- byte
+            byte_count := 1;
             if term_out.adr(1 downto 0) = "01" then
                first_be_en := "0010";
             elsif term_out.adr(1 downto 0) = "10" then
@@ -594,12 +593,14 @@ begin
                first_be_en := "0001";
             end if;
          elsif term_out.typ = 1 then                                            -- word
+            byte_count := 2;
             if term_out.adr(1) = '0' then
                first_be_en := "0011";
             else
                first_be_en := "1100";
             end if;
          else                                                                   -- long word
+            byte_count  := 4;
             first_be_en := x"F";
          end if;
 
@@ -665,6 +666,7 @@ begin
                   bfm_wr_mem32(
                      bar_num    => var_bar_num,
                      bar_offset => var_bar_offset,
+                     byte_count => byte_count,
                      data32     => term_out.dat,
                      success    => success_int
                   );
@@ -894,7 +896,7 @@ begin
    ----------------------
    ltssm_mon : altpcietb_ltssm_mon
       port map(
-         ep_ltssm => ep_ltssm_i, --bfm_ltssm_ep,
+         ep_ltssm => ep_ltssm_i,
          rp_clk   => bfm_pclk_int,
          rp_ltssm => bfm_ltssm_rp,
          rstn     => pcie_rstn_i,

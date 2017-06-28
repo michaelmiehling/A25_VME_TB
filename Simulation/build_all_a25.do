@@ -219,19 +219,19 @@ vcom -work work -2002 ../../16a025-00_src/16z002-01_src/Source/wbb2vme_top.vhd
 
 # pcie core simulation files
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_rs_serdes.vhd
-vcom -2002 ../../Altera_src/new/x1/altpcie_rs_serdes.vhd
+vcom -2002 ../../Altera_src/x1/altpcie_rs_serdes.vhd
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_100_250.vhd
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/altpcie_pll_125_250.vhd
 
-vcom -2002 ../../Altera_src/new/x1/altpcierd_reconfig_clk_pll.vhd
-vcom -2002 ../../Altera_src/new/x1/altpcie_pll_125_250.vhd
-vcom -2002 ../../Altera_src/new/x1/altpcie_pll_100_125.vhd
-vcom -2002 ../../Altera_src/new/x1/altpcie_pll_100_250.vhd
-vcom -2002 ../../Altera_src/new/x1/altpcie_reconfig_4sgx.vhd
-vcom -2002 ../../Altera_src/new/x1/altpcie_reconfig_3cgx.vhd
-vcom -2002 ../../Altera_src/new/x1/Hard_IP_x1_plus.vhd
-vcom -2002 ../../Altera_src/new/x1/Hard_IP_x1_rs_hip.vhd
-vcom -2002 ../../Altera_src/new/x1/Hard_IP_x1_core.vho
+vcom -2002 ../../Altera_src/x1/altpcierd_reconfig_clk_pll.vhd
+vcom -2002 ../../Altera_src/x1/altpcie_pll_125_250.vhd
+vcom -2002 ../../Altera_src/x1/altpcie_pll_100_125.vhd
+vcom -2002 ../../Altera_src/x1/altpcie_pll_100_250.vhd
+vcom -2002 ../../Altera_src/x1/altpcie_reconfig_4sgx.vhd
+vcom -2002 ../../Altera_src/x1/altpcie_reconfig_3cgx.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_plus.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_rs_hip.vhd
+vcom -2002 ../../Altera_src/x1/Hard_IP_x1_core.vho
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x1/Simulation/Hard_IP_x1_core.vho
 #vcom -2002 ../../16a025-00_src/16z091-01_src/Source/x4/Simulation/Hard_IP_x4_core.vho
 
@@ -315,45 +315,23 @@ vsim -t fs  \
 -novopt \
 work.a25_tb_conf 
 
-#-voptargs=+acc \
 
-#add wave sim:/a25_tb/a25/*
-#add wave sim:/a25_tb/a25/vme/vmedma/*
-#add wave sim:/a25_tb/a25/vme/vmedma/dma_mstr/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/du/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/au/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/bustimer/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/master/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/requester/*
-#add wave sim:/a25_tb/a25/vme/vmectrl/arbiter/*
-#add wave sim:/a25_tb/vme_bus/*
-#add wave sim:/a25_tb/vme_bus/vmesimmstr/*
+add wave sim:/a25_tb/a25/*
+add wave sim:/a25_tb/a25/vme/vmedma/*
+add wave sim:/a25_tb/a25/vme/vmedma/dma_mstr/*
+add wave sim:/a25_tb/a25/vme/vmectrl/du/*
+add wave sim:/a25_tb/a25/vme/vmectrl/au/*
+add wave sim:/a25_tb/a25/vme/vmectrl/bustimer/*
+add wave sim:/a25_tb/a25/vme/vmectrl/master/*
+add wave sim:/a25_tb/a25/vme/vmectrl/requester/*
+add wave sim:/a25_tb/a25/vme/vmectrl/arbiter/*
+add wave sim:/a25_tb/vme_bus/*
+add wave sim:/a25_tb/vme_bus/vmesimmstr/*
 
 #log -r /*
-#add wave -divider {Hard IP}
-#add wave \
-#   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/pclk_in \
-#   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/clk250_out \
-#   /a25_tb/a25/pcie/gen_x1/hard_ip_x1_comp/pld_clk
-#
-add wave -divider {PCIe EP}
-add wave \
-   /a25_tb/a25/pcie/clk250_int \
-   /a25_tb/a25/pcie/app_int_ack_int \
-   /a25_tb/a25/pcie/app_msi_ack_int \
-   /a25_tb/a25/pcie/app_int_sts_int \
-   /a25_tb/a25/pcie/app_msi_req_int \
-   /a25_tb/a25/pcie/app_msi_tc_int \
-   /a25_tb/a25/pcie/app_msi_num_int \
-   /a25_tb/a25/pcie/pex_msi_num_int \
-   /a25_tb/a25/pcie/int_wb_int \
-   /a25_tb/a25/pcie/int_wb_pwr_enable \
-   /a25_tb/a25/pcie/int_wb_int_num \
-   /a25_tb/a25/pcie/int_wb_int_ack \
-   /a25_tb/a25/pcie/int_wb_int_num_allowed
-
-add wave -group {all EP ports}\
-   /a25_tb/a25/pcie/*
+#add wave -divider {PCIe EP}
+#add wave -group {all EP ports}\
+   #/a25_tb/a25/pcie/*
 
 #add wave -divider {BFM}
 #add wave \
@@ -370,25 +348,14 @@ add wave -group {all EP ports}\
 #   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar4_addr \
 #   -dec /a25_tb/pcie_sim_inst/main/var_bar4_limit \
 #   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar5_addr \
-#   -dec /a25_tb/pcie_sim_inst/main/var_bar5_limit \
-#   /a25_tb/pcie_sim_inst/ep_clk250_i \
-#   /a25_tb/pcie_sim_inst/bfm_inst/rp/pclk_in \
-#   /a25_tb/pcie_sim_inst/bfm_inst/app_int_sts \
-#   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_ack \
-#   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_req \
-#   /a25_tb/pcie_sim_inst/bfm_inst/app_msi_tc \
-#   /a25_tb/pcie_sim_inst/bfm_inst/cfg_msicsr
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar5_limit
 #
-add wave -group {all BFM ports} \
-   /a25_tb/pcie_sim_inst/bfm_inst/crst \
-   /a25_tb/pcie_sim_inst/bfm_inst/srst \
-   /a25_tb/pcie_sim_inst/*
+#add wave -group {all BFM ports} \
+   #/a25_tb/pcie_sim_inst/bfm_inst/crst \
+   #/a25_tb/pcie_sim_inst/bfm_inst/srst \
+   #/a25_tb/pcie_sim_inst/*
 
-#add wave -divider {testbench}
-#add wave \
-#   /a25_tb/ep_clk250_int
-#
-add wave -divider {DEBUG}
+#add wave -divider {DEBUG}
 
 # next 5 lines are for debugging only, remove later
 variable NumericStdNoWarnings 1
@@ -397,5 +364,4 @@ variable StdArithNoWarnings 1
 #variable NumericStdNoWarnings 0
 #variable StdArithNoWarnings 0
 
-#run 16 us
- run -all
+run -all

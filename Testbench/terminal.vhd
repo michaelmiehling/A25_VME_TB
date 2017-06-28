@@ -165,78 +165,69 @@ report "DEBUG: after configure_bfm" severity note;
    print("                Start of Tests");
    print("***************************************************");
    -- Reset:
---TODO: this one works
-   --vme_reset(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, slot1, hreset_n, v2p_rstn, vb_sysresn, en_msg_0, err);
-   --terminal_err_0 <= terminal_err_0 + err;
+   vme_reset(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, slot1, hreset_n, v2p_rstn, vb_sysresn, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
 
---TODO: has errors
---   -- VME Buserror:
---   vme_buserror(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
+   -- VME Buserror:
+   vme_buserror(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
 
---TODO: has errors
---   -- chameleon
---   cham_test(terminal_in_0, terminal_out_0, en_msg_0, err);    
---   terminal_err_0 <= terminal_err_0 + err;    
+--TODO: has errors: cham number changed
+   -- chameleon
+   cham_test(terminal_in_0, terminal_out_0, en_msg_0, err);    
+   terminal_err_0 <= terminal_err_0 + err;    
 
---TODO: this one works
    -- geographical address test
---   vme_ga_test(terminal_in_0, terminal_out_0, vme_ga, vme_gap, en_msg_0, err);    
---   terminal_err_0 <= terminal_err_0 + err;    
+   vme_ga_test(terminal_in_0, terminal_out_0, vme_ga, vme_gap, en_msg_0, err);    
+   terminal_err_0 <= terminal_err_0 + err;    
 
    -- VME Slave:
---TODO: this one works
-   --vme_slave_a242sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+   vme_slave_a242sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+
+   vme_slave_a242pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+
+   vme_slave_a322sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+
+   vme_slave_a322pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+
+   vme_slave_a162regs(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+
+--TODO: has errors and breaks simulation
+   -- VME Master:
+   --vme_master_windows(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
    --terminal_err_0 <= terminal_err_0 + err;
 
---TODO: has errors
---   vme_slave_a242pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
-
---TODO: this one works
---   vme_slave_a322sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
-
---TODO: has errors
---   vme_slave_a322pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
-
---   vme_slave_a162regs(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
-
-   -- VME Master:
---TODO: this one works
---   vme_master_windows(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
-
    -- VME Interrupt Handler:
---TODO: this one works
---   vme_irq_rcv(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, irq_req, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
---
---TODO: this one works
---   -- VME Interrupter:
---   vme_irq_trans(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
---
---TODO: rework IRQs
---TODO: from here all TC untested!
---   -- VME DMA:
---   vme_dma_sram2a24d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
---   vme_dma_sram2sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
---   vme_dma_sram2a32d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
---   vme_dma_sram2a32d64(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
---   vme_dma_sram2pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
+   vme_irq_rcv(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
 
+   -- VME Interrupter:
+   vme_irq_trans(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
 
---TODO: this one works
---   vme_arbitration(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, hreset_n, slot1, en_clk, en_msg_0, err);
---   terminal_err_0 <= terminal_err_0 + err;
+   -- VME DMA:
+   vme_dma_sram2a24d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+   vme_dma_sram2sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+   vme_dma_sram2a32d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+
+--TODO: has errors
+   vme_dma_sram2a32d64(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+
+   vme_dma_sram2pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
+
+--TODO: has errors
+   vme_arbitration(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, hreset_n, slot1, en_clk, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
 
    WAIT FOR 1 us;
 
