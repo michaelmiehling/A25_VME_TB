@@ -18,6 +18,12 @@ tags
 # ignore CVS directories if present
 /**/CVS
 
+# ignore ModelSim files
+*.wlf
+Simulation/modelsim.ini
+
+# ignore all compiled simulation libraries
+/Simulation/lib/*
 
 /Simulation/wlf*
 /Simulation/*transcript*

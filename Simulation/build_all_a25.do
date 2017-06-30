@@ -43,6 +43,39 @@ vcom -work work -2002 -explicit ../Testbench/terminal_pkg.vhd
 vcom -work work -2002 -explicit ../16x004-00_src/Source/pcie_x1_sim.vhd
 vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_sim.vhd             
 
+
+## Packages and Simulation Models
+##
+   vcom -work work -2002 $env(A25_VME_PATH)/16z000-00_src/Source/fpga_pkg_2.vhd
+
+   vcom -work work -2002 -explicit ../16x010-00_src/Source/conversions.vhd
+   vcom -work work -2002 -explicit ../16x010-00_src/Source/print_pkg.vhd
+   vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_pkg.vhd
+   vcom -work work -2002 -explicit ../Testbench/vme_sim_pack.vhd
+   vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_sim.vhd
+
+   # PCIe BFM
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_common.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_constants.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_log.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_shmem.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_req_intf.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rdwr.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_configure.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_pipe_xtx2yrx.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_pipe_phy.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_ltssm_mon.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rp_top_x8_pipen1b.vhd
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rpvar_64b_x8_gen1_pipen1b.vho
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rpvar_64b_x8_gen2_pipen1b.vho
+   vcom -work work -2008 ../Altera_src/altpcietb_bfm_vc_intf.vhd
+
+vcom -work work -2008 ../16x004-01_src/Source/utils_pkg.vhd
+vcom -work work -2008 ../16x004-01_src/Source/types_pkg.vhd
+vcom -work work -2008 ../16x004-01_src/Source/pcie_sim_pkg.vhd
+vcom -work work -2008 -explicit ../Testbench/terminal_pkg.vhd
+vcom -work work -2008 ../16x004-01_src/Source/pcie_sim.vhd
+
 ## DUT Source
 ##
 # remote update
@@ -59,7 +92,15 @@ vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_indi_if_ct
 vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_fifo_d1.vhd
 vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_clk_trans_wb2wb.vhd
 vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_switch_fab_2.vhd
-vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_pasmi/z126_01_pasmi_m25p32.vhd
+
+# compile special files for simulation
+vcom -work work -2002 ../Testbench/m25p32/mem_util_pkg.vhd
+vcom -work work -2002 ../Testbench/m25p32/internal_logic.vhd     
+vcom -work work -2002 ../Testbench/m25p32/memory_access.vhd      
+vcom -work work -2002 ../Testbench/m25p32/acdc_check.vhd         
+vcom -work work -2002 ../Testbench/m25p32/m25p32.vhd 
+vcom -work work -2002 ../Testbench/z126_01_pasmi_m25p32_sim.vhd
+vcom -work work -2002 ../Testbench/z126_01_altremote_update_sim_model.vhd
 
 # iram
 vcom -work work -2002 $env(A25_VME_PATH)/16z024-01_src/Source/iram_wb.vhd
@@ -97,6 +138,15 @@ vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_125_250.vhd 
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_core.vho
 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcierd_reconfig_clk_pll.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_125_250.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_125.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_250.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_reconfig_4sgx.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_reconfig_3cgx.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/chaining_dma/Hard_IP_x1_plus.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/chaining_dma/Hard_IP_x1_rs_hip.vhd
+
 
 
 ## pcie2wbb
@@ -125,6 +175,7 @@ vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1.vhd
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x4/Hard_IP_x4_serdes.vhd 
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x4/Hard_IP_x4.vhd 
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/ip_16z091_01_top.vhd
+vcom -2008 ../Testbench/ip_16z091_01_top_sim.vhd
 
 
 # 16z100
@@ -137,6 +188,7 @@ vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/wbmon.vhd
 vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/fifo_d1.vhd
 vcom -work work -93 $env(A25_VME_PATH)/16z100-00_src/Source/clk_trans_wb2wb.vhd
 vcom -work work -93 $env(A25_VME_PATH)/Source/wb_bus.vhd
+
 
 
 
@@ -157,7 +209,7 @@ vcom -2002 ../Testbench/vme_sim_mstr.vhd
 vcom -2002 ../Testbench/vme_sim_slave.vhd
 vcom -2002 ../Testbench/vmebus.vhd
 
-vcom -2002 ../Testbench/a25_tb.vhd
+vcom -2008 ../Testbench/a25_tb.vhd
 
 vsim -t fs  \
 -L altera \
@@ -166,9 +218,10 @@ vsim -t fs  \
 -L sgate \
 -L cycloneiv_hssi \
 -L pciebfm_lib \
--voptargs=+acc \
--l test_report.txt\
+-l test_report.txt \
+-novopt \
 work.a25_tb_conf 
+
 
 add wave sim:/a25_tb/a25/*
 add wave sim:/a25_tb/a25/vme/vmedma/*
@@ -181,4 +234,13 @@ add wave sim:/a25_tb/a25/vme/vmectrl/requester/*
 add wave sim:/a25_tb/a25/vme/vmectrl/arbiter/*
 add wave sim:/a25_tb/vme_bus/*
 add wave sim:/a25_tb/vme_bus/vmesimmstr/*
+
+
+# next 5 lines are for debugging only, remove later
+variable NumericStdNoWarnings 1
+variable StdArithNoWarnings 1
+#run 50 ns
+#variable NumericStdNoWarnings 0
+#variable StdArithNoWarnings 0
+
 run -all
