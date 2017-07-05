@@ -1701,7 +1701,7 @@ PACKAGE BODY terminal_pkg IS
       VARIABLE dat     : std_logic_vector(31 DOWNTO 0);
    BEGIN
       print("Test MEN_01A021_00_IT_0210: Chameleon Table");
-      rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_0000", x"00034102", 1, en_msg_0, TRUE, "000001", loc_err); 
+      rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_0000", x"00054102", 1, en_msg_0, TRUE, "000001", loc_err); 
       rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_0004", x"0000abce", 1, en_msg_0, TRUE, "000001", loc_err); 
       rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_0008", x"00000000", 1, en_msg_0, TRUE, "000001", loc_err); 
       rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_000c", x"32304100", 1, en_msg_0, TRUE, "000001", loc_err); 
@@ -2808,7 +2808,7 @@ PACKAGE BODY terminal_pkg IS
          wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_001c", x"0000_0020", 1, en_msg_0, TRUE, "000001");  
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_001c", x"0000_0020", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
-         print(" clear destination in VME_A24D32");
+         print(" clear destination in VME_A32D32");
          wr32(terminal_in_0, terminal_out_0, VME_A32D32 + x"1000_0000", x"0000_0000", 1, en_msg_0, TRUE, "000001");
          wr32(terminal_in_0, terminal_out_0, VME_A32D32 + x"1000_0004", x"0000_0000", 1, en_msg_0, TRUE, "000001");
          wr32(terminal_in_0, terminal_out_0, VME_A32D32 + x"1000_0008", x"0000_0000", 1, en_msg_0, TRUE, "000001");
@@ -2824,7 +2824,7 @@ PACKAGE BODY terminal_pkg IS
          wr32(terminal_in_0, terminal_out_0, SRAM + x"0000_0310", x"0000_0000", 1, en_msg_0, TRUE, "000001");
          wr32(terminal_in_0, terminal_out_0, SRAM + x"0000_0314", x"0000_0000", 1, en_msg_0, TRUE, "000001");
          wr32(terminal_in_0, terminal_out_0, SRAM + x"0000_02fc", x"0000_0000", 1, en_msg_0, TRUE, "000001");
-         print(" config buffer descriptor #1 SRAM => VME_A24D32");
+         print(" config buffer descriptor #1 SRAM => VME_A32D64");
          wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F900", x"3000_0008", 1, en_msg_0, TRUE, "000001");  -- dest adr
          rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F900", x"3000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
@@ -2834,11 +2834,11 @@ PACKAGE BODY terminal_pkg IS
          wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F908", x"0000_0003", 1, en_msg_0, TRUE, "000001");  -- size
          rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F908", x"0000_0003", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
-         wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F90c", x"0001_20e0", 1, en_msg_0, TRUE, "000001");  -- source=sram dest=A24D64 inc
+         wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F90c", x"0001_20e0", 1, en_msg_0, TRUE, "000001");  -- source=sram dest=A32D64 inc
          rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F90c", x"0001_20e0", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
    
-         print(" config buffer descriptor #2 VME_A24D32 => SRAM");
+         print(" config buffer descriptor #2 VME_A32D64 => SRAM");
          wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F910", x"0000_0300", 1, en_msg_0, TRUE, "000001");  -- dest adr
          rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F910", x"0000_0300", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
@@ -2848,7 +2848,7 @@ PACKAGE BODY terminal_pkg IS
          wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F918", x"0000_0003", 1, en_msg_0, TRUE, "000001");  -- size
          rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F918", x"0000_0003", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
-         wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F91c", x"0002_10e1", 1, en_msg_0, TRUE, "000001");  -- source=A24D32 dest=sram inc
+         wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F91c", x"0002_10e1", 1, en_msg_0, TRUE, "000001");  -- source=A32D64 dest=sram inc
          rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F91c", x"0002_10e1", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
          print(" start DMA transfer");
@@ -2883,7 +2883,7 @@ PACKAGE BODY terminal_pkg IS
          print(" check control reg for irq asserted");
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0006", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
-         print(" check destination VME_A24D32");
+         print(" check destination VME_A32D32");
          rd32(terminal_in_0, terminal_out_0, VME_A32D32 + x"1000_0000", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
          rd32(terminal_in_0, terminal_out_0, VME_A32D32 + x"1000_0004", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
@@ -3162,6 +3162,8 @@ PACKAGE BODY terminal_pkg IS
       rd16(terminal_in_0, terminal_out_0, VME_A16D16 + x"0000_1000", x"0000_1111", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
       wait_for(terminal_in_1, terminal_out_1, 10, TRUE);
+--TODO: remove
+report "INTERMEDIATE STOP" severity failure;
    
       print("Test: VME A16D32");
       wr16(terminal_in_0, terminal_out_0, VME_A16D32 + x"0000_1004", x"0000_1131", 1, en_msg_0, TRUE, "000001");

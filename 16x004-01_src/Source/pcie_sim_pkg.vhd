@@ -416,26 +416,73 @@ package body pcie_sim_pkg is
       data32     : in  dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
       success    : out boolean
    ) is
-      --variable var_databuf : dword_vector(8*byte_count -1 downto 0);
-      variable var_data_buf   : std_logic_vector(8*byte_count -1 downto 0);
-      variable var_pass       : boolean := true;
-      variable var_nbr_of_dw  : integer;
-      variable var_local_addr : natural := 0;
+      --variable var_databuf      : dword_vector(8*byte_count -1 downto 0);
+      variable var_data_buf       : std_logic_vector(8*byte_count -1 downto 0);
+      variable var_pass           : boolean := true;
+      variable var_nbr_of_dw      : integer;
+      variable var_local_addr     : natural := 0;
+      variable var_copy_dw_cntr   : natural := 0;
+      variable var_copy_byte_cntr : natural := 0;
    begin
       var_pass      := true;
-      var_nbr_of_dw := byte_count * 4;
+      var_nbr_of_dw := byte_count / 4;
+
+--TODO: remove
+print("");
+print("+---------------------------------------------------------------------------+");
+print_now("| *** DEBUG: bfm_wr_mem32() ***");
+print_s_i("|     bfm_wr_mem32(): bar_num = ", bar_num);
+print_s_i("|     bfm_wr_mem32(): bar_offset = ", bar_offset);
+print_s_hl("|     bfm_wr_mem32(): bar_offset in hex = ", std_logic_vector(to_unsigned(bar_offset,32)));
+print_s_i("|     bfm_wr_mem32(): byte_count = ", byte_count);
+print_s_dl("|     bfm_wr_mem32(): var_data_buf = ", var_data_buf);
+print_s_i("|     bfm_wr_mem32(): var_nbr_of_dw = ", var_nbr_of_dw);
+report("|     bfm_wr_mem32(): sizeof var_data_buf = ") & natural'image(var_data_buf'high);
+print("|     ");
 
       -------------------
       -- copy user data
       -------------------
-      for i in 0 to var_nbr_of_dw -1 loop
-         var_data_buf(i*32+31 downto i*32) := data32(i);
+      --for i in 0 to var_nbr_of_dw -1 loop
+         --var_data_buf(i*32+31 downto i*32) := data32(i);
+      --end loop;
+      -----------------------------------------------------------------
+      -- use var_copy_counter to access the correct 32bit data vector
+      -- in the dword_vector structure, use i to copy the correct 
+      -- portion of the 32bit vector
+      -----------------------------------------------------------------
+      for i in 0 to byte_count -1 loop
+         var_copy_byte_cntr := i mod 4;
+         if (i > 0) and (i mod 4 = 0) then
+--TODO: remove
+print_s_i("|     bfm_wr_mem32():    var_copy_dw_cntr = ", var_copy_dw_cntr);
+print_s_i("|     bfm_wr_mem32():    var_copy_dw_cntr *32 +31 = ", var_copy_dw_cntr *32 +31);
+print_s_i("|     bfm_wr_mem32():    var_copy_dw_cntr *32 = ", var_copy_dw_cntr *32);
+print_s_hl("|     bfm_wr_mem32():    var_data_buf(var_copy_dw_cntr *32 +31 downto var_copy_dw_cntr *32) = ", var_data_buf(var_copy_dw_cntr *32 +31 downto var_copy_dw_cntr *32));
+print_s_hl("|     bfm_wr_mem32():    data32(var_copy_dw_cntr)                                           = ", data32(var_copy_dw_cntr));
+            var_copy_dw_cntr := var_copy_dw_cntr +1;
+         end if;
+         wait for 0 ns;
+--TODO: remove
+print_s_i("|     bfm_wr_mem32(): i = ", i);
+print_s_i("|     bfm_wr_mem32(): var_copy_dw_cntr = ", var_copy_dw_cntr);
+print_s_i("|     bfm_wr_mem32(): var_copy_byte_cntr = ", var_copy_byte_cntr);
+print_s_hb("|     bfm_wr_mem32(): copying data32 = ", data32(var_copy_dw_cntr)(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8));
+print_s_i("|     bfm_wr_mem32(): copy to var_data_buf upper margin = ", var_copy_byte_cntr*8+7);
+print_s_i("|     bfm_wr_mem32(): copy to var_data_buf lower margin = ", var_copy_byte_cntr*8);
+         --var_data_buf(i*8+7 downto i*8) := data32(var_copy_dw_cntr)(i*8+7 downto i*8);
+         --var_data_buf(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8) := data32(var_copy_dw_cntr)(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8);
+         var_data_buf(i*8+7 downto i*8) := data32(var_copy_dw_cntr)(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8);
+--TODO: remove
+print_s_hb("|     bfm_wr_mem32(): var_data_buf(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8) = ", var_data_buf(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8));
       end loop;
 
       -----------------------------------------
       -- write user data to BFM shared memory
       -----------------------------------------
-      var_local_addr := 0 + bar_offset;
+--TODO: remove
+print("|     bfm_wr_mem32(): call shmem_write()"); 
+      var_local_addr := 0; -- + bar_offset;
       shmem_write(
          addr => var_local_addr,
          data => var_data_buf,
@@ -445,6 +492,8 @@ package body pcie_sim_pkg is
       ---------------------------
       -- transfer data via PCIe
       ---------------------------
+--TODO: remove
+print("|     bfm_wr_mem32(): call ebfm_barrw()"); 
       ebfm_barwr(
          bar_table   => BAR_TABLE_POINTER,
          bar_num     => bar_num,
@@ -453,6 +502,10 @@ package body pcie_sim_pkg is
          byte_len    => byte_count,
          tclass      => 0
       );
+--TODO: remove
+print("|     bfm_wr_mem32(): DONE");
+print("+---------------------------------------------------------------------------+");
+print("");
 
       report "WARNING (bfm_wr_mem32): return value for success is always true" severity warning;
       success := var_pass;
@@ -538,8 +591,11 @@ package body pcie_sim_pkg is
       if ref_data32 = DONT_CHECK32 then
          print_now("BFM: checking of read value skipped on user command");
       else
+--TODO: remove
+print_s_hl("|     bfm_rd_mem32() -> check_val(): ref_data32         = ", ref_data32);
+print_s_hl("|     bfm_rd_mem32() -> check_val(): var_databuf(0) = ", var_databuf(0));
          check_val(
-            caller_proc => "bfm_rd_mem32",
+            caller_proc => "bfm_rd_mem32 - single",
             ref_val     => ref_data32,
             check_val   => var_databuf(0),
             byte_valid  => byte_en,
@@ -560,7 +616,7 @@ package body pcie_sim_pkg is
       success    : out boolean
    ) is
       variable var_databuf_max  : dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
-      variable var_databuf  : std_logic_vector(byte_count *8 downto 0);
+      variable var_databuf  : std_logic_vector(byte_count *8 -1 downto 0);
       variable var_pass     : boolean := true;
       variable var_pass_temp : boolean := true;
       variable var_nbr_of_dw : integer;
@@ -568,9 +624,25 @@ package body pcie_sim_pkg is
       variable byte_en      : std_logic_vector(3 downto 0) := (others => '0');
       variable first_DW_en  : std_logic_vector(3 downto 0) := (others => '0');
       variable last_DW_en   : std_logic_vector(3 downto 0) := (others => '0');
+      variable var_copy_dw_cntr   : natural := 0;
+      variable var_copy_byte_cntr : natural := 0;
    begin
-      var_pass   := true;
-      data32_out := (others => (others => '0'));
+      var_pass      := true;
+      data32_out    := (others => (others => '0'));
+      var_nbr_of_dw := byte_count /4;
+      wait for 0 ns;
+--TODO: remove
+print("");
+print("+---------------------------------------------------------------------------+");
+print_now("| *** DEBUG: bfm_rd_mem32() ***");
+print_s_i("|     bfm_rd_mem32(): bar_num = ", bar_num);
+print_s_i("|     bfm_rd_mem32(): bar_offset = ", bar_offset);
+print_s_hl("|     bfm_rd_mem32(): bar_offset in hex = ", std_logic_vector(to_unsigned(bar_offset,32)));
+print_s_i("|     bfm_rd_mem32(): byte_count = ", byte_count);
+print_s_dl("|     bfm_rd_mem32(): var_databuf = ", var_databuf);
+print_s_i("|     bfm_rd_mem32(): var_nbr_of_dw = ", var_nbr_of_dw);
+report("|     bfm_rd_mem32(): sizeof var_databuf = ") & natural'image(var_databuf'high);
+print("|     ");
 
       -- initialize data buffer with known default values
       for i in 0 to BFM_BUFFER_MAX_SIZE loop
@@ -578,6 +650,8 @@ package body pcie_sim_pkg is
       end loop;
 
       var_local_addr := 0;
+--TODO: remove
+print("|     bfm_rd_mem32(): call ebfm_barrd_wait()");
       ebfm_barrd_wait(
          bar_table   => BAR_TABLE_POINTER,
          bar_num     => bar_num,
@@ -587,22 +661,51 @@ package body pcie_sim_pkg is
          tclass      => 0
       );
 
+--TODO: remove
+print("|     bfm_rd_mem32(): call shmem_read()");
       var_databuf := shmem_read(addr => 0, leng => byte_count);
 
-      var_nbr_of_dw := byte_count *4;
-      for i in 0 to var_nbr_of_dw -1 loop
-         var_databuf_max(i) := var_databuf(i*32+31 downto i*32);
+--TODO: remove
+print_s_i("|     bfm_rd_mem32(): var_nbr_of_dw = ", var_nbr_of_dw);
+      --for i in 0 to var_nbr_of_dw -1 loop
+      --   var_databuf_max(i) := var_databuf(i*32+31 downto i*32);
+      --end loop;
+      for i in 0 to byte_count -1 loop
+         var_copy_byte_cntr := i mod 4;
+         wait for 0 ns;
+         if (i > 0) and (i mod 4 = 0) then
+--TODO: remove
+print_s_i("|     bfm_rd_mem32(): var_copy_dw_cntr = ", var_copy_dw_cntr);
+print_s_hl("|     bfm_rd_mem32(): var_databuf(var_copy_dw_cntr*32 +31 downto var_copy_dw_cntr*32) = ", var_databuf(var_copy_dw_cntr *32 +31 downto var_copy_dw_cntr *32));
+print_s_hl("|     bfm_rd_mem32(): var_databuf_max(var_copy_dw_cntr) = ", var_databuf_max(var_copy_dw_cntr));
+            var_copy_dw_cntr := var_copy_dw_cntr +1;
+            wait for 0 ns;
+         end if;
+--TODO: remove
+print_s_i("|     bfm_rd_mem32(): i = ", i);
+print_s_i("|     bfm_rd_mem32(): var_copy_dw_cntr = ", var_copy_dw_cntr);
+print_s_i("|     bfm_rd_mem32(): var_copy_byte_cntr = ", var_copy_byte_cntr);
+         --var_databuf_max(var_copy_dw_cntr)(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8) := var_databuf(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8);
+         var_databuf_max(var_copy_dw_cntr)(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8) := var_databuf(i*8+7 downto i*8);
+--TODO: remove
+print_s_hb("|     bfm_rd_mem32(): var_databuf_max(var_copy_dw_cntr)(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8) = ", var_databuf_max(var_copy_dw_cntr)(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8));
+print_s_hb("|     bfm_rd_mem32(): var_databuf(i*8+7 downto i*8) = ", var_databuf(i*8+7 downto i*8));
       end loop;
 
       -----------------------------------
       -- check if read value is correct
       -----------------------------------
-      for i in 0 to BFM_BUFFER_MAX_SIZE loop
+      --for i in 0 to BFM_BUFFER_MAX_SIZE loop
+      for i in 0 to var_nbr_of_dw -1 loop
          if ref_data32(i) = DONT_CHECK32 then
             print_now("BFM: checking of read value skipped on user command");
          else
+--TODO: remove
+print_s_i ("|     bfm_rd_mem32() -> check_val(): i                  = ", i);
+print_s_hl("|     bfm_rd_mem32() -> check_val(): ref_data32(i)      = ", ref_data32(i));
+print_s_hl("|     bfm_rd_mem32() -> check_val(): var_databuf_max(i) = ", var_databuf_max(i));
             check_val(
-               caller_proc => "bfm_rd_mem32",
+               caller_proc => "bfm_rd_mem32 - burst",
                ref_val     => ref_data32(i),
                check_val   => var_databuf_max(i),
                byte_valid  => x"F",
@@ -613,6 +716,10 @@ package body pcie_sim_pkg is
       end loop;
 
       data32_out  := var_databuf_max;
+--TODO: remove
+print_now("bfm_rd_mem32() DONE");
+print("+---------------------------------------------------------------------------+");
+print("");
 
       success := var_pass;
    end procedure;

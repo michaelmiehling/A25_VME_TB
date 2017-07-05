@@ -600,7 +600,8 @@ begin
                first_be_en := "1100";
             end if;
          else                                                                   -- long word
-            byte_count  := 4;
+            --byte_count  := 4;
+            byte_count := term_out.numb *4;
             first_be_en := x"F";
          end if;
 
