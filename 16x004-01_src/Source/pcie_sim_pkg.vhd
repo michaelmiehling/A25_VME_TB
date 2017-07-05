@@ -130,6 +130,7 @@ package pcie_sim_pkg is
    -- single memory write to 32bit address space
    -----------------------------------------------
    procedure bfm_wr_mem32(
+      pcie_addr  : in  std_logic_vector(1 downto 0);
       bar_num    : in  natural;
       bar_offset : in  natural;
       byte_count : in  natural range 4 downto 1;
@@ -372,6 +373,7 @@ package body pcie_sim_pkg is
    end procedure;
 
    procedure bfm_wr_mem32(
+      pcie_addr  : in  std_logic_vector(1 downto 0);
       bar_num    : in  natural;
       bar_offset : in  natural;
       byte_count : in  natural range 4 downto 1;
@@ -390,12 +392,13 @@ package body pcie_sim_pkg is
       shmem_write(
          addr => var_local_addr,
          data => data32,
-         leng => byte_count --4                                                              -- length in bytes
+         leng => 4 --byte_count
       );
 
       ---------------------------
       -- transfer data via PCIe
       ---------------------------
+      var_local_addr := 0 + (to_integer(unsigned(pcie_addr)));
       ebfm_barwr(
          bar_table   => BAR_TABLE_POINTER,
          bar_num     => bar_num,
@@ -405,7 +408,7 @@ package body pcie_sim_pkg is
          tclass      => 0
       );
 
-      report "WARNING (bfm_wr_mem32): return value for success is always true" severity warning;
+      report "WARNING (bfm_wr_mem32 - single): return value for success is always true" severity warning;
       success := var_pass;
    end procedure;
 
@@ -416,26 +419,35 @@ package body pcie_sim_pkg is
       data32     : in  dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
       success    : out boolean
    ) is
-      --variable var_databuf : dword_vector(8*byte_count -1 downto 0);
-      variable var_data_buf   : std_logic_vector(8*byte_count -1 downto 0);
-      variable var_pass       : boolean := true;
-      variable var_nbr_of_dw  : integer;
-      variable var_local_addr : natural := 0;
+      variable var_data_buf       : std_logic_vector(8*byte_count -1 downto 0);
+      variable var_pass           : boolean := true;
+      variable var_nbr_of_dw      : integer;
+      variable var_local_addr     : natural := 0;
+      variable var_copy_dw_cntr   : natural := 0;
+      variable var_copy_byte_cntr : natural := 0;
    begin
       var_pass      := true;
-      var_nbr_of_dw := byte_count * 4;
+      var_nbr_of_dw := byte_count / 4;
 
-      -------------------
-      -- copy user data
-      -------------------
-      for i in 0 to var_nbr_of_dw -1 loop
-         var_data_buf(i*32+31 downto i*32) := data32(i);
+      -----------------------------------------------------------------
+      -- copy user data:
+      -- use var_copy_counter to access the correct 32bit data vector
+      -- in the dword_vector structure, use i to copy the correct 
+      -- portion of the 32bit vector
+      -----------------------------------------------------------------
+      for i in 0 to byte_count -1 loop
+         var_copy_byte_cntr := i mod 4;
+         if (i > 0) and (i mod 4 = 0) then
+            var_copy_dw_cntr := var_copy_dw_cntr +1;
+         end if;
+         wait for 0 ns;
+         var_data_buf(i*8+7 downto i*8) := data32(var_copy_dw_cntr)(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8);
       end loop;
 
       -----------------------------------------
       -- write user data to BFM shared memory
       -----------------------------------------
-      var_local_addr := 0 + bar_offset;
+      var_local_addr := 0; -- + bar_offset;
       shmem_write(
          addr => var_local_addr,
          data => var_data_buf,
@@ -454,7 +466,7 @@ package body pcie_sim_pkg is
          tclass      => 0
       );
 
-      report "WARNING (bfm_wr_mem32): return value for success is always true" severity warning;
+      report "WARNING (bfm_wr_mem32 - burst): return value for success is always true" severity warning;
       success := var_pass;
    end procedure;
 
@@ -475,7 +487,9 @@ package body pcie_sim_pkg is
       var_pass   := true;
       data32_out := (others => '0');
 
+      -----------------------------------------------------
       -- initialize data buffer with known default values
+      -----------------------------------------------------
       for i in 0 to BFM_BUFFER_MAX_SIZE loop
          var_databuf(i) := x"CAFE_AFFE";
       end loop;
@@ -516,6 +530,10 @@ package body pcie_sim_pkg is
             var_byte_offset := 0;
       end case;
 
+      -------------------------------------------------
+      -- add byte offset to PCIe read function to get
+      -- properly formed PCIe TLP format
+      -------------------------------------------------
       var_local_addr := 0;
       ebfm_barrd_wait(
          bar_table   => BAR_TABLE_POINTER,
@@ -539,7 +557,7 @@ package body pcie_sim_pkg is
          print_now("BFM: checking of read value skipped on user command");
       else
          check_val(
-            caller_proc => "bfm_rd_mem32",
+            caller_proc => "bfm_rd_mem32 - single",
             ref_val     => ref_data32,
             check_val   => var_databuf(0),
             byte_valid  => byte_en,
@@ -560,7 +578,7 @@ package body pcie_sim_pkg is
       success    : out boolean
    ) is
       variable var_databuf_max  : dword_vector(BFM_BUFFER_MAX_SIZE downto 0);
-      variable var_databuf  : std_logic_vector(byte_count *8 downto 0);
+      variable var_databuf  : std_logic_vector(byte_count *8 -1 downto 0);
       variable var_pass     : boolean := true;
       variable var_pass_temp : boolean := true;
       variable var_nbr_of_dw : integer;
@@ -568,11 +586,17 @@ package body pcie_sim_pkg is
       variable byte_en      : std_logic_vector(3 downto 0) := (others => '0');
       variable first_DW_en  : std_logic_vector(3 downto 0) := (others => '0');
       variable last_DW_en   : std_logic_vector(3 downto 0) := (others => '0');
+      variable var_copy_dw_cntr   : natural := 0;
+      variable var_copy_byte_cntr : natural := 0;
    begin
-      var_pass   := true;
-      data32_out := (others => (others => '0'));
+      var_pass      := true;
+      data32_out    := (others => (others => '0'));
+      var_nbr_of_dw := byte_count /4;
+      wait for 0 ns;
 
+      -----------------------------------------------------
       -- initialize data buffer with known default values
+      -----------------------------------------------------
       for i in 0 to BFM_BUFFER_MAX_SIZE loop
          var_databuf_max(i) := x"CAFE_AFFE";
       end loop;
@@ -589,20 +613,31 @@ package body pcie_sim_pkg is
 
       var_databuf := shmem_read(addr => 0, leng => byte_count);
 
-      var_nbr_of_dw := byte_count *4;
-      for i in 0 to var_nbr_of_dw -1 loop
-         var_databuf_max(i) := var_databuf(i*32+31 downto i*32);
+      ---------------------------------------------------------
+      -- copy read data: 
+      -- use i to iterate through bytes
+      -- use var_copy_dw_cntr to iterate through dword vector
+      -- use var_copy_byte_cntr to iterate through bytes
+      ---------------------------------------------------------
+      for i in 0 to byte_count -1 loop
+         var_copy_byte_cntr := i mod 4;
+         wait for 0 ns;
+         if (i > 0) and (i mod 4 = 0) then
+            var_copy_dw_cntr := var_copy_dw_cntr +1;
+            wait for 0 ns;
+         end if;
+         var_databuf_max(var_copy_dw_cntr)(var_copy_byte_cntr*8+7 downto var_copy_byte_cntr*8) := var_databuf(i*8+7 downto i*8);
       end loop;
 
       -----------------------------------
       -- check if read value is correct
       -----------------------------------
-      for i in 0 to BFM_BUFFER_MAX_SIZE loop
+      for i in 0 to var_nbr_of_dw -1 loop
          if ref_data32(i) = DONT_CHECK32 then
             print_now("BFM: checking of read value skipped on user command");
          else
             check_val(
-               caller_proc => "bfm_rd_mem32",
+               caller_proc => "bfm_rd_mem32 - burst",
                ref_val     => ref_data32(i),
                check_val   => var_databuf_max(i),
                byte_valid  => x"F",
@@ -971,7 +1006,6 @@ package body pcie_sim_pkg is
    begin
       var_pass := true;
 
-      --track_msi_loop : for i in 0 to track_msi loop
       track_msi_loop : for i in 1 to track_msi loop
          if txt_out >=2 then print_s_i("bfm_poll_msi(): tracking MSI number: ", i); end if;
 

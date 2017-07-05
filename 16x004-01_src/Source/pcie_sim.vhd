@@ -509,9 +509,6 @@ begin
 
    bfm_ltssm_rp <= test_out_int(324 downto 320);
 
-   --bfm_rx_o                               <= bfm_rx_int(BFM_LANE_WIDTH -1 downto 0);
-   --bfm_tx_int(BFM_LANE_WIDTH -1 downto 0) <= bfm_tx_i;
-
    bfm_rx_o(BFM_LANE_WIDTH -1 downto 0)   <= bfm_rx_int(BFM_LANE_WIDTH -1 downto 0);
    bfm_tx_int(BFM_LANE_WIDTH -1 downto 0) <= bfm_tx_i(BFM_LANE_WIDTH -1 downto 0);
 -- +----------------------------------------------------------------------------
@@ -578,7 +575,6 @@ begin
          -- set values for this run
          ----------------------------
          addr32_int := term_out.adr(31 downto 2) & "00";
-         --byte_count := term_out.numb *4;
          bfm_id     := to_integer(unsigned(term_out.tga(3 downto 2)));
 
          if term_out.typ = 0 then                                               -- byte
@@ -600,7 +596,7 @@ begin
                first_be_en := "1100";
             end if;
          else                                                                   -- long word
-            byte_count  := 4;
+            byte_count := term_out.numb *4;
             first_be_en := x"F";
          end if;
 
@@ -656,7 +652,7 @@ begin
                report "ERROR(pcie_sim): I/O transfer not supported" severity error;
             elsif term_out.tga(1 downto 0) = MEM32_TRANSFER then                -- memory
                get_pcie_addr_and_offset(
-                  pcie_addr  => addr32_int,
+                  pcie_addr  => term_out.adr,
                   bar_addr   => bar_addr,
                   bar_limit  => bar_limit,
                   bar_num    => var_bar_num,
@@ -664,6 +660,7 @@ begin
                );
                if term_out.numb = 1 then
                   bfm_wr_mem32(
+                     pcie_addr  => term_out.adr(1 downto 0),
                      bar_num    => var_bar_num,
                      bar_offset => var_bar_offset,
                      byte_count => byte_count,
