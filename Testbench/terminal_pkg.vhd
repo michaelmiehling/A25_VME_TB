@@ -3162,8 +3162,6 @@ PACKAGE BODY terminal_pkg IS
       rd16(terminal_in_0, terminal_out_0, VME_A16D16 + x"0000_1000", x"0000_1111", 1, en_msg_0, TRUE, "000001", loc_err);
       err_sum := err_sum + loc_err;
       wait_for(terminal_in_1, terminal_out_1, 10, TRUE);
---TODO: remove
-report "INTERMEDIATE STOP" severity failure;
    
       print("Test: VME A16D32");
       wr16(terminal_in_0, terminal_out_0, VME_A16D32 + x"0000_1004", x"0000_1131", 1, en_msg_0, TRUE, "000001");
