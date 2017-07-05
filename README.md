@@ -35,50 +35,33 @@ Simulation:		Work folder of simulator Modelsim (PE 6.6)
         	wbs_x_transcript.txt		Access log of Wishbone slave #x
 
 Folder setup:
-    your_root_folder
-     +- 16a025-00_src
-        +- [...]
-     +- 16a025-00_tb
-        +- [...]
-        +- Altera_src                                      <- shall include BFM files
-           +- altpcietb_bfm_common.vhd
-           +- altpcietb_bfm_constants.vhd
-           +- altpcietb_bfm_log.vhd
-           +- altpcietb_bfm_shmem.vhd
-           +- altpcietb_bfm_req_intf.vhd
-           +- altpcietb_bfm_rdwr.vhd
-           +- altpcietb_bfm_configure.vhd
-           +- altpcietb_pipe_xtx2yrx.vhd
-           +- altpcietb_pipe_phy.vhd
-           +- altpcietb_ltssm_mon.vhd
-           +- altpcietb_bfm_rp_top_x8_pipen1b.vhd
-           +- altpcietb_bfm_rpvar_64b_x8_gen1_pipen1b.vho
-           +- altpcietb_bfm_rpvar_64b_x8_gen2_pipen1b.vho
-           +- altpcietb_bfm_vc_intf.vhd
-        +- Simulation 
-           +- build_all_a25.do                             <- to start simulation, only prepared for x1 - add x2/x4 sources
-           +- [...]
-        +- Testbench
-           +- [...]
-     +- Altera_src                                         <- shall include Hard IP sources
-        +- x1
-           +- Hard_IP_x1.vhd
-           +- Hard_IP_x1_core.vhd
-           +- Hard_IP_x1_core.vho
-           +- Hard_IP_x1_serdes.vhd
-           +- Hard_IP_x1_plus.vhd
-        +- x2
-           +- Hard_IP_x2.vhd
-           +- Hard_IP_x2_core.vhd
-           +- Hard_IP_x2_core.vho
-           +- Hard_IP_x2_serdes.vhd
-           +- Hard_IP_x2_plus.vhd
-        +- x4
-           +- Hard_IP_x4.vhd
-           +- Hard_IP_x4_core.vhd
-           +- Hard_IP_x4_core.vho
-           +- Hard_IP_x4_serdes.vhd
-           +- Hard_IP_x4_plus.vhd
+
+     your_root_folder
+      +- 16a025-00_src
+         +- [...]
+      +- 16a025-00_tb
+         +- [...]
+         +- Altera_src                                      <- shall include BFM files
+            +- altpcietb_bfm_common.vhd
+            +- altpcietb_bfm_constants.vhd
+            +- altpcietb_bfm_log.vhd
+            +- altpcietb_bfm_shmem.vhd
+            +- altpcietb_bfm_req_intf.vhd
+            +- altpcietb_bfm_rdwr.vhd
+            +- altpcietb_bfm_configure.vhd
+            +- altpcietb_pipe_xtx2yrx.vhd
+            +- altpcietb_pipe_phy.vhd
+            +- altpcietb_ltssm_mon.vhd
+            +- altpcietb_bfm_rp_top_x8_pipen1b.vhd
+            +- altpcietb_bfm_rpvar_64b_x8_gen1_pipen1b.vho
+            +- altpcietb_bfm_rpvar_64b_x8_gen2_pipen1b.vho
+            +- altpcietb_bfm_vc_intf.vhd
+         +- Simulation 
+            +- build_all_a25.do                             <- to start simulation, only prepared for x1 - add x2/x4 sources
+            +- [...]
+         +- Testbench
+            +- [...]
+
 
                   
 
