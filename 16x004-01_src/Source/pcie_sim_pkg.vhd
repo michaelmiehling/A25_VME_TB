@@ -17,9 +17,18 @@
 --------------------------------------------------------------------------------
 -- Copyright (C) 2017, MEN Mikro Elektronik Nuremberg GmbH
 --
--- All rights reserved. Reproduction in whole or part is
--- prohibited without the written permission of the
--- copyright owner.
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+-- 
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+-- 
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -658,32 +667,73 @@ package body pcie_sim_pkg is
       data32       : in  std_logic_vector(31 downto 0);
       success      : out boolean
    ) is
-      variable var_compl_status : std_logic_vector(2 downto 0);
-      variable var_byte_len     : natural := 0;
-      variable var_pass         : boolean := true;
+      variable var_pcie_addr      : std_logic_vector(31 downto 0) := (others => '0');
+      variable var_compl_status   : std_logic_vector(2 downto 0);
+      variable var_databuf        : std_logic_vector(31 downto 0);
+      variable var_byte_len       : natural := 0;
+      variable var_cfg_space_addr : natural := 0;
+      variable var_shmem_addr     : natural := 0;
+      variable var_pass           : boolean := true;
    begin
-      var_pass := true;
+      var_pass                   := true;
+      var_pcie_addr(31 downto 2) := pcie_addr;
+      var_databuf                := (others => '0');
       
-      if byte_en(0) = '1' then
-         var_byte_len := var_byte_len +1;
-      end if;
-      if byte_en(1) = '1' then
-         var_byte_len := var_byte_len +1;
-      end if;
-      if byte_en(2) = '1' then
-         var_byte_len := var_byte_len +1;
-      end if;
-      if byte_en(3) = '1' then
-         var_byte_len := var_byte_len +1;
-      end if;
+      --------------------------------------------------------------------------
+      -- given PCIe address is DW aligned thus address offset for byte or word
+      -- access must be calculated manually
+      -- BUT there may be no hole in bytes e.g. byte_en = "1010" is illegal
+      -- valid:
+      --   "1111" / "0111" / "0011" / "0001" / "1100" / "0010" / "0100" / "1000"
+      -- consider this when retrieving data from shared memory!
+      --------------------------------------------------------------------------
+      case byte_en is
+         when "1111" =>
+            var_byte_len              := 4;
+            var_pcie_addr(1 downto 0) := "00";
+            var_databuf               := data32;
+         when "0111" =>
+            var_byte_len              := 3;
+            var_pcie_addr(1 downto 0) := "00";
+            var_databuf               := data32;
+         when "0011" =>
+            var_byte_len              := 2;
+            var_pcie_addr(1 downto 0) := "00";
+            var_databuf               := data32;
+         when "0001" =>
+            var_byte_len              := 1;
+            var_pcie_addr(1 downto 0) := "00";
+            var_databuf               := data32;
+         when "1100" =>
+            var_byte_len              := 2;
+            var_pcie_addr(1 downto 0) := "10";
+            var_databuf               := data32;
+         when "0010" =>
+            var_byte_len              := 1;
+            var_pcie_addr(1 downto 0) := "01";
+            var_databuf               := data32;
+         when "0100" =>
+            var_byte_len              := 1;
+            var_pcie_addr(1 downto 0) := "10";
+            var_databuf               := data32;
+         when "1000" =>
+            var_byte_len              := 1;
+            var_pcie_addr(1 downto 0) := "11";
+            var_databuf               := data32;
+         when others =>
+            var_byte_len  := 0;
+            var_pcie_addr := x"0000_0006";                                      -- status register is RO or RW1C thus safe for dummy write
+            var_databuf   := (others => '0');
+      end case;
 
+      var_cfg_space_addr := to_integer(unsigned(var_pcie_addr));
       ebfm_cfgwr_imm_wait(
          bus_num      => 1,
          dev_num      => 1,
          fnc_num      => 0,
-         regb_ad      => to_integer(unsigned(pcie_addr)),
+         regb_ad      => var_cfg_space_addr,
          regb_ln      => var_byte_len,
-         imm_data     => data32,
+         imm_data     => var_databuf,
          compl_status => var_compl_status
       );
 
@@ -710,34 +760,67 @@ package body pcie_sim_pkg is
       data32_out   : out std_logic_vector(31 downto 0);
       success      : out boolean
    ) is
+      variable var_pcie_addr    : std_logic_vector(31 downto 0) := (others => '0');
       variable var_databuf      : std_logic_vector(31 downto 0);
       variable var_compl_status : std_logic_vector(2 downto 0);
       variable var_byte_len     : natural := 0;
+      variable var_cfg_space_addr   : natural := 0;
+      variable var_shmem_addr : natural := 0;
       variable var_pass         : boolean := true;
    begin
-      var_pass   := true;
-      data32_out := (others => '0');
+      var_pass                   := true;
+      data32_out                 := (others => '0');
+      var_compl_status           := (others => '1');
+      var_pcie_addr(31 downto 2) := pcie_addr;
+      var_databuf                := x"FADE_FADE";
+      var_shmem_addr             := 0;
 
-      if byte_en(0) = '1' then
-         var_byte_len := var_byte_len +1;
-      end if;
-      if byte_en(1) = '1' then
-         var_byte_len := var_byte_len +1;
-      end if;
-      if byte_en(2) = '1' then
-         var_byte_len := var_byte_len +1;
-      end if;
-      if byte_en(3) = '1' then
-         var_byte_len := var_byte_len +1;
-      end if;
+      --------------------------------------------------------------------------
+      -- given PCIe address is DW aligned thus address offset for byte or word
+      -- access must be calculated manually
+      -- BUT there may be no hole in bytes e.g. byte_en = "1010" is illegal
+      -- valid:
+      --   "1111" / "0111" / "0011" / "0001" / "1100" / "0010" / "0100" / "1000"
+      -- consider this when retrieving data from shared memory!
+      --------------------------------------------------------------------------
+      case byte_en is
+         when "1111" =>
+            var_byte_len              := 4;
+            var_pcie_addr(1 downto 0) := "00";
+         when "0111" =>
+            var_byte_len              := 3;
+            var_pcie_addr(1 downto 0) := "00";
+         when "0011" =>
+            var_byte_len              := 2;
+            var_pcie_addr(1 downto 0) := "00";
+         when "0001" =>
+            var_byte_len              := 1;
+            var_pcie_addr(1 downto 0) := "00";
+         when "1100" =>
+            var_byte_len              := 2;
+            var_pcie_addr(1 downto 0) := "10";
+         when "0010" =>
+            var_byte_len              := 1;
+            var_pcie_addr(1 downto 0) := "01";
+         when "0100" =>
+            var_byte_len              := 1;
+            var_pcie_addr(1 downto 0) := "10";
+         when "1000" =>
+            var_byte_len              := 1;
+            var_pcie_addr(1 downto 0) := "11";
+         when others =>
+            var_byte_len  := 0;
+            var_pcie_addr := (others => '0');
+      end case;
       
+      var_cfg_space_addr := to_integer(unsigned(var_pcie_addr));
       ebfm_cfgrd_wait(
-         bus_num => 1,
-         dev_num => 1,
-         fnc_num => 0,
-         regb_ad => to_integer(unsigned(pcie_addr)),
-         regb_ln => var_byte_len,
-         lcladdr => 0,
+         bus_num      => 1,
+         dev_num      => 1,
+         fnc_num      => 0,
+         regb_ad      => var_cfg_space_addr,
+         regb_ln      => var_byte_len,
+         lcladdr      => var_shmem_addr,
          compl_status => var_compl_status
       );
       if var_compl_status = "000" then
@@ -752,6 +835,27 @@ package body pcie_sim_pkg is
          print_now("ERROR(bfm_rd_config): return status for config read is completer abort");
          var_pass := false;
       end if;
+
+      --------------------------------------
+      -- read value from BFM shared memory
+      --------------------------------------
+      var_databuf := shmem_read(addr => var_shmem_addr, leng => var_byte_len);
+
+      ---------------------------------------------------------------------------
+      -- copy data read from shared memory to expected position for check_val()
+      ---------------------------------------------------------------------------
+      case byte_en is
+         when "1100" =>
+            var_databuf(31 downto 16) := var_databuf(15 downto 0);
+         when "0010" =>
+            var_databuf(15 downto 8)  := var_databuf(7 downto 0);
+         when "0100" =>
+            var_databuf(23 downto 16) := var_databuf(7 downto 0);
+         when "1000" =>
+            var_databuf(31 downto 24) := var_databuf(7 downto 0);
+         when others =>                                                         -- byte position ok
+            var_databuf := var_databuf;
+      end case;
 
       -----------------------------------
       -- check if read value is correct
