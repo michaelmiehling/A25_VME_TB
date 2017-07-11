@@ -21,9 +21,18 @@
 --------------------------------------------------------------------------------
 -- Copyright (C) 2017, MEN Mikro Elektronik Nuremberg GmbH
 --
--- All rights reserved. Reproduction in whole or part is
--- prohibited without the written permission of the
--- copyright owner.
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+-- 
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+-- 
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -509,9 +518,6 @@ begin
 
    bfm_ltssm_rp <= test_out_int(324 downto 320);
 
-   --bfm_rx_o                               <= bfm_rx_int(BFM_LANE_WIDTH -1 downto 0);
-   --bfm_tx_int(BFM_LANE_WIDTH -1 downto 0) <= bfm_tx_i;
-
    bfm_rx_o(BFM_LANE_WIDTH -1 downto 0)   <= bfm_rx_int(BFM_LANE_WIDTH -1 downto 0);
    bfm_tx_int(BFM_LANE_WIDTH -1 downto 0) <= bfm_tx_i(BFM_LANE_WIDTH -1 downto 0);
 -- +----------------------------------------------------------------------------
@@ -578,7 +584,6 @@ begin
          -- set values for this run
          ----------------------------
          addr32_int := term_out.adr(31 downto 2) & "00";
-         --byte_count := term_out.numb *4;
          bfm_id     := to_integer(unsigned(term_out.tga(3 downto 2)));
 
          if term_out.typ = 0 then                                               -- byte
@@ -600,7 +605,7 @@ begin
                first_be_en := "1100";
             end if;
          else                                                                   -- long word
-            byte_count  := 4;
+            byte_count := term_out.numb *4;
             first_be_en := x"F";
          end if;
 
@@ -641,6 +646,7 @@ begin
                   );
                end if;
             elsif term_out.tga(1 downto 0) = CONFIG_TRANSFER then               -- configuration type 0 
+               return_data32 := x"FADE_FADE";
                bfm_rd_config(
                   byte_en      => first_be_en,
                   pcie_addr    => addr32_int(31 downto 2),
@@ -656,7 +662,7 @@ begin
                report "ERROR(pcie_sim): I/O transfer not supported" severity error;
             elsif term_out.tga(1 downto 0) = MEM32_TRANSFER then                -- memory
                get_pcie_addr_and_offset(
-                  pcie_addr  => addr32_int,
+                  pcie_addr  => term_out.adr,
                   bar_addr   => bar_addr,
                   bar_limit  => bar_limit,
                   bar_num    => var_bar_num,
@@ -664,6 +670,7 @@ begin
                );
                if term_out.numb = 1 then
                   bfm_wr_mem32(
+                     pcie_addr  => term_out.adr(1 downto 0),
                      bar_num    => var_bar_num,
                      bar_offset => var_bar_offset,
                      byte_count => byte_count,

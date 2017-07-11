@@ -1701,7 +1701,7 @@ PACKAGE BODY terminal_pkg IS
       VARIABLE dat     : std_logic_vector(31 DOWNTO 0);
    BEGIN
       print("Test MEN_01A021_00_IT_0210: Chameleon Table");
-      rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_0000", x"00034102", 1, en_msg_0, TRUE, "000001", loc_err); 
+      rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_0000", x"00054102", 1, en_msg_0, TRUE, "000001", loc_err); 
       rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_0004", x"0000abce", 1, en_msg_0, TRUE, "000001", loc_err); 
       rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_0008", x"00000000", 1, en_msg_0, TRUE, "000001", loc_err); 
       rd32(terminal_in_0, terminal_out_0, BAR0 + x"0000_000c", x"32304100", 1, en_msg_0, TRUE, "000001", loc_err); 

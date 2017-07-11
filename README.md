@@ -34,7 +34,6 @@ Simulation:		Work folder of simulator Modelsim (PE 6.6)
         	wbm_x_transcript.txt		Access log of Wishbone master #x
         	wbs_x_transcript.txt		Access log of Wishbone slave #x
 
-
 Folder setup:
 
      your_root_folder
@@ -62,6 +61,8 @@ Folder setup:
             +- [...]
          +- Testbench
             +- [...]
+
+
                   
 
 ## Preliminaries to simulation

@@ -154,9 +154,7 @@ report "DEBUG: after init_bfm" severity note;
    --! @param bar5 BAR5 settings
    --! @param cmd_status_reg settings for the command status register
    --! @param  ctrl_status_reg settings for the control status register
-report "DEBUG: before configure_bfm" severity note;
    configure_bfm(terminal_in => terminal_in_0, terminal_out => terminal_out_0, bar0_addr => BAR0, bar1_addr => BAR1, bar2_addr => BAR2, bar3_addr => BAR3, bar4_addr => BAR4, bar5_addr => BAR5, txt_out => en_msg_0);
-report "DEBUG: after configure_bfm" severity note;
 
    WAIT FOR 3 us;
    
@@ -218,14 +216,12 @@ report "DEBUG: after configure_bfm" severity note;
    vme_dma_sram2a32d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
 
---TODO: has errors
    vme_dma_sram2a32d64(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
 
    vme_dma_sram2pci(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
 
---TODO: has errors
    vme_arbitration(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, hreset_n, slot1, en_clk, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
 
