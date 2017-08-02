@@ -302,7 +302,41 @@ PACKAGE terminal_pkg IS
                en_msg_0       : integer;
                err            : OUT natural
                );
+               
+   PROCEDURE vme_dma_boundaries(   
+      SIGNAL   terminal_in_0  : IN terminal_in_type;
+      SIGNAL   terminal_out_0 : OUT terminal_out_type;
+      SIGNAL   terminal_in_1  : IN terminal_in_type;
+      SIGNAL   terminal_out_1 : OUT terminal_out_type;
+      SIGNAL   irq_req        : IN std_logic_vector(16 DOWNTO 0);
+               en_msg_0       : integer;
+               err            : OUT natural
+               );
 
+   PROCEDURE vme_dma_fifo(   
+      SIGNAL   terminal_in_0  : IN terminal_in_type;
+      SIGNAL   terminal_out_0 : OUT terminal_out_type;
+      SIGNAL   terminal_in_1  : IN terminal_in_type;
+      SIGNAL   terminal_out_1 : OUT terminal_out_type;
+      SIGNAL   irq_req        : IN std_logic_vector(16 DOWNTO 0);
+               en_msg_0       : integer;
+               err            : OUT natural
+               );
+
+   PROCEDURE vme_dma(   
+      SIGNAL   terminal_in_0  : IN terminal_in_type;
+      SIGNAL   terminal_out_0 : OUT terminal_out_type;
+      SIGNAL   irq_req        : IN std_logic_vector(16 DOWNTO 0);
+               size           : integer;                          -- number of longwords to be transmitted by DMA
+               src_adr        : std_logic_vector(31 downto 0);    -- DMA source address
+               dest_adr       : std_logic_vector(31 downto 0);    -- DMA destination address
+               vme_am         : std_logic_vector(4 downto 0);     -- address modifier bits of buffer descriptor
+               src_dev        : std_logic_vector(2 downto 0);     -- source device bits of buffer descriptor
+               dest_dev       : std_logic_vector(2 downto 0);     -- destination device bits of buffer descriptor
+               en_msg_0       : integer;
+               err            : OUT natural
+               );
+               
    PROCEDURE vme_slave_a242sram(   
       SIGNAL   terminal_in_0  : IN terminal_in_type;
       SIGNAL   terminal_out_0 : OUT terminal_out_type;
