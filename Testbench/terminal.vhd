@@ -138,9 +138,7 @@ term_0: PROCESS
    --! @param mem64_addr start address for the BFM internal MEM64 space
    --! @param requester_id defines the requester ID that is used for every BFM transfer
    --! @param max_payloadsize defines the maximum payload size for every write request
-report "DEBUG: before init_bfm" severity note;
    init_bfm(0, x"0000_0000", SIM_BAR0, x"0000_0000_0000_0000", x"0000", 256);
-report "DEBUG: after init_bfm" severity note;
 
    --! procedure to configure the BFM
    --! @param bfm_inst_nbr number of the BFM instance that will be configured
@@ -170,7 +168,6 @@ report "DEBUG: after init_bfm" severity note;
    vme_buserror(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
 
---TODO: has errors: cham number changed
    -- chameleon
    cham_test(terminal_in_0, terminal_out_0, en_msg_0, err);    
    terminal_err_0 <= terminal_err_0 + err;    
@@ -195,10 +192,9 @@ report "DEBUG: after init_bfm" severity note;
    vme_slave_a162regs(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
 
---TODO: has errors and breaks simulation
    -- VME Master:
-   --vme_master_windows(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
-   --terminal_err_0 <= terminal_err_0 + err;
+   vme_master_windows(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
 
    -- VME Interrupt Handler:
    vme_irq_rcv(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, irq_req, en_msg_0, err);
@@ -211,7 +207,8 @@ report "DEBUG: after init_bfm" severity note;
    -- VME DMA:
    vme_dma_boundaries(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err; 
-   vme_dma_fifo(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+   
+   vme_dma_fifo(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
    vme_dma_sram2a24d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
