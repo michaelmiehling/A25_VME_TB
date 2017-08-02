@@ -209,6 +209,10 @@ report "DEBUG: after init_bfm" severity note;
    terminal_err_0 <= terminal_err_0 + err;
 
    -- VME DMA:
+   vme_dma_boundaries(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err; 
+   vme_dma_fifo(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
    vme_dma_sram2a24d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
    vme_dma_sram2sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
