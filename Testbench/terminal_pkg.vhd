@@ -1717,6 +1717,13 @@ PACKAGE BODY terminal_pkg IS
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0003", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
       
+         var_check_msi_nbr := 9;
+         bfm_calc_msi_expected(
+            msi_allocated => var_msi_allocated,
+            msi_data      => MSI_DATA_VAL,
+            msi_nbr       => var_check_msi_nbr,
+            msi_expected  => var_msi_expected
+         );
          var_success := false;
          bfm_poll_msi(
             track_msi    => 1,
