@@ -1,51 +1,135 @@
 ####################################################################
 ##  Configuration of pathes for libraries and A25_VME repo clone  ##
 ####################################################################
-## Modify according to your local setup
-
-setenv ALT_LIBS /opt/altera/modelsim_lib/vhdl_libs
 setenv A25_VME_PATH ../../A25_VME
 
-####################################################################
-vlib work
-
+onerror {break}
 ## Altera Simulation Libraries:
 ##
-vmap lpm       $env(ALT_LIBS)/lpm
-vmap altera_mf $env(ALT_LIBS)/altera_mf
-vmap cycloneiv $env(ALT_LIBS)/cycloneiv
-vmap altera    $env(ALT_LIBS)/altera
-vmap altera_mf $env(ALT_LIBS)/altera_mf
-vmap cycloneiv $env(ALT_LIBS)/cycloneiv
-vmap cycloneiv_hssi $env(ALT_LIBS)/cycloneiv_hssi
-vmap sgate     $env(ALT_LIBS)/sgate
-vmap lpm       $env(ALT_LIBS)/lpm
-vmap cycloneiv_pcie_hip $env(ALT_LIBS)/cycloneiv_pcie_hip
+# set paths for library compilation out of quartus files
+set PathToQuartus /opt/altera/16.0/quartus
+set PathToOldQuartus /opt/altera/11.0/quartus
 
-## PLDA Simulation Libraries:
-##
-vmap pciebfm_lib ../16x004-00_src/Source/PLDA_BFM/modelsim/pciebfm_lib
-vcom -force_refresh -work pciebfm_lib
-# vcom -force_refresh -work phypcs_altera_lib
+####################################################################
+
+# manage paths for libraries and working directory for easy adaption
+set vsimversion [regsub -all { } [vsim -version] ""]
+set libdir  "lib/$vsimversion"
+set workdir "lib/$vsimversion/work"
+
+# create working directory if not present yet
+if {![file isdirectory $workdir]} {
+   puts "VSIM_COMPILE: creating working library"
+   file mkdir $workdir
+   vlib $workdir
+   vmap work $workdir
+}
+
+# compile libraries
+if [file exists "$libdir/libs"] {
+} else {file mkdir "$libdir/libs"}
+
+if {![file isdirectory "$libdir/libs/altera"]} {
+   vlib "$libdir/libs/altera"
+   vmap altera "$libdir/libs/altera"
+   vcom -work altera \
+      $PathToQuartus/eda/sim_lib/altera_europa_support_lib.vhd \
+      $PathToQuartus/eda/sim_lib/altera_primitives_components.vhd \
+      $PathToQuartus/eda/sim_lib/altera_primitives.vhd
+}
+
+if {![file isdirectory "$libdir/libs/altera_mf"]} {
+   vlib "$libdir/libs/altera_mf"
+   vmap altera_mf "$libdir/libs/altera_mf"
+   vcom -work altera_mf \
+      $PathToQuartus/eda/sim_lib/altera_mf_components.vhd \
+      $PathToQuartus/eda/sim_lib/altera_mf.vhd
+}
+
+if {![file isdirectory "$libdir/libs/lpm"]} {
+   vlib "$libdir/libs/lpm"
+   vmap lpm "$libdir/libs/lpm"
+   vcom -93 -quiet -work lpm \
+     $PathToQuartus/eda/sim_lib/220pack.vhd \
+     $PathToQuartus/eda/sim_lib/220model.vhd
+}
+if {![file isdirectory "$libdir/libs/sgate"]} {
+   vlib "$libdir/libs/sgate"
+   vmap sgate "$libdir/libs/sgate"
+   vcom -93 -quiet -work sgate \
+      $PathToQuartus/eda/sim_lib/sgate_pack.vhd \
+      $PathToQuartus/eda/sim_lib/sgate.vhd
+}
+if {![file isdirectory "$libdir/libs/cycloneii"]} {
+   vlib "$libdir/libs/cycloneii"
+   vmap cycloneii "$libdir/libs/cycloneii"
+   vcom -work cycloneii \
+      $PathToOldQuartus/eda/sim_lib/cycloneii_atoms.vhd \
+      $PathToOldQuartus/eda/sim_lib/cycloneii_components.vhd
+}
+if {![file isdirectory "$libdir/libs/cycloneiv"]} {
+   vlib "$libdir/libs/cycloneiv"
+   vmap cycloneiv "$libdir/libs/cycloneiv"
+   vcom -93 -quiet -work cycloneiv \
+     $PathToQuartus/eda/sim_lib/cycloneiv_atoms.vhd \
+     $PathToQuartus/eda/sim_lib/cycloneiv_components.vhd
+}
+if {![file isdirectory "$libdir/libs/cycloneiv_hssi"]} {
+   vlib "$libdir/libs/cycloneiv_hssi"
+   vmap cycloneiv_hssi "$libdir/libs/cycloneiv_hssi"
+   vcom -93 -quiet -work cycloneiv_hssi \
+      $PathToQuartus/eda/sim_lib/cycloneiv_hssi_components.vhd \
+      $PathToQuartus/eda/sim_lib/cycloneiv_hssi_atoms.vhd
+}
+if {![file isdirectory "$libdir/libs/cycloneiv_pcie_hip"]} {
+   vlib "$libdir/libs/cycloneiv_pcie_hip"
+   vmap cycloneiv_pcie_hip "$libdir/libs/cycloneiv_pcie_hip"
+   vcom -93 -quiet -work cycloneiv_pcie_hip \
+      $PathToQuartus/eda/sim_lib/cycloneiv_pcie_hip_components.vhd \
+      $PathToQuartus/eda/sim_lib/cycloneiv_pcie_hip_atoms.vhd 
+}
+if {![file isdirectory "$libdir/libs/arriagx_hssi"]} {
+   vlib "$libdir/libs/arriagx_hssi"
+   vmap arriagx_hssi "$libdir/libs/arriagx_hssi"
+   vcom -93 -quiet -work arriagx_hssi \
+      $PathToOldQuartus/eda/sim_lib/arriagx_hssi_components.vhd \
+      $PathToOldQuartus/eda/sim_lib/arriagx_hssi_atoms.vhd
+}
+if {![file isdirectory "$libdir/libs/arriagx"]} {
+   vlib "$libdir/libs/arriagx"
+   vmap arriagx "$libdir/libs/arriagx"
+   vcom -93 -quiet -work arriagx \
+      $PathToOldQuartus/eda/sim_lib/arriagx_atoms.vhd \
+      $PathToOldQuartus/eda/sim_lib/arriagx_components.vhd
+}
+if {![file isdirectory "$libdir/libs/arriaii_hssi"]} {
+   vlib "$libdir/libs/arriaii_hssi"
+   vmap arriaii_hssi "$libdir/libs/arriaii_hssi"
+   vcom -93 -quiet -work arriaii_hssi \
+      $PathToQuartus/eda/sim_lib/arriaii_hssi_components.vhd \
+      $PathToQuartus/eda/sim_lib/arriaii_hssi_atoms.vhd
+}
+if {![file isdirectory "$libdir/libs/stratixiv_hssi"]} {
+   vlib "$libdir/libs/stratixiv_hssi"
+   vmap stratixiv_hssi "$libdir/libs/stratixiv_hssi"
+   vcom -93 -quiet -work stratixiv_hssi \
+      $PathToQuartus/eda/sim_lib/stratixiv_hssi_components.vhd \
+      $PathToQuartus/eda/sim_lib/stratixiv_hssi_atoms.vhd
+}
+if {![file isdirectory "$libdir/libs/stratixiigx_hssi"]} {
+   vlib "$libdir/libs/stratixiigx_hssi"
+   vmap stratixiigx_hssi "$libdir/libs/stratixiigx_hssi"
+   vcom -93 -quiet -work stratixiigx_hssi \
+      $PathToOldQuartus/eda/sim_lib/stratixiigx_hssi_components.vhd \
+      $PathToOldQuartus/eda/sim_lib/stratixiigx_hssi_atoms.vhd 
+}
+
 
 ## Packages and Simulation Models
 ##
-vcom -work work -2002 $env(A25_VME_PATH)/16z000-00_src/Source/fpga_pkg_2.vhd
-
-vcom -work work -2002 -explicit ../16x010-00_src/Source/conversions.vhd
-vcom -work work -2002 -explicit ../16x010-00_src/Source/print_pkg.vhd
-vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_pkg.vhd             
-vcom -work work -2002 -explicit ../Testbench/vme_sim_pack.vhd
-vcom -work work -2002 -explicit ../16x004-00_src/Source/utils_pkg.vhd             
-vcom -work work -2002 -explicit ../16x004-00_src/Source/types_pkg.vhd             
-vcom -work work -2002 -explicit ../16x004-00_src/Source/pcie_x1_pkg.vhd
-vcom -work work -2002 -explicit ../Testbench/terminal_pkg.vhd
-vcom -work work -2002 -explicit ../16x004-00_src/Source/pcie_x1_sim.vhd
-vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_sim.vhd             
-
-
-## Packages and Simulation Models
-##
+# only recompile unchanged sources if necessary, checking one folder should be enough
+# recompiling Altera BFM sources is time consuming
+if {![file isdirectory "$libdir/work/fpga_pkg_2"]} {
    vcom -work work -2002 $env(A25_VME_PATH)/16z000-00_src/Source/fpga_pkg_2.vhd
 
    vcom -work work -2002 -explicit ../16x010-00_src/Source/conversions.vhd
@@ -55,20 +139,21 @@ vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_sim.vhd
    vcom -work work -2002 -explicit ../16x001-00_src/Source/iram32_sim.vhd
 
    # PCIe BFM
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_common.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_constants.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_log.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_shmem.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_req_intf.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rdwr.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_configure.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_pipe_xtx2yrx.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_pipe_phy.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_ltssm_mon.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rp_top_x8_pipen1b.vhd
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rpvar_64b_x8_gen1_pipen1b.vho
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_rpvar_64b_x8_gen2_pipen1b.vho
-   vcom -work work -2008 ../Altera_src/altpcietb_bfm_vc_intf.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_common.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_constants.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_log.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_shmem.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_req_intf.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_rdwr.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_configure.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_pipe_xtx2yrx.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_pipe_phy.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_ltssm_mon.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_rp_top_x8_pipen1b.vhd
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_rpvar_64b_x8_gen1_pipen1b.vho
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_rpvar_64b_x8_gen2_pipen1b.vho
+   vcom -work work -2008 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcietb_bfm_vc_intf.vhd
+}
 
 vcom -work work -2008 ../16x004-01_src/Source/utils_pkg.vhd
 vcom -work work -2008 ../16x004-01_src/Source/types_pkg.vhd
@@ -97,8 +182,8 @@ vcom -work work -2002 $env(A25_VME_PATH)/16z126-01_src/Source/z126_01_switch_fab
 vcom -work work -2002 ../Testbench/m25p32/mem_util_pkg.vhd
 vcom -work work -2002 ../Testbench/m25p32/internal_logic.vhd     
 vcom -work work -2002 ../Testbench/m25p32/memory_access.vhd      
-vcom -work work -2002 ../Testbench/m25p32/acdc_check.vhd         
-vcom -work work -2002 ../Testbench/m25p32/m25p32.vhd 
+vcom -work work -2002 ../Testbench/m25p32/ACDC_check.vhd         
+vcom -work work -2002 ../Testbench/m25p32/M25P32.vhd 
 vcom -work work -2002 ../Testbench/z126_01_pasmi_m25p32_sim.vhd
 vcom -work work -2002 ../Testbench/z126_01_altremote_update_sim_model.vhd
 
@@ -134,10 +219,6 @@ vcom -work work -2002 $env(A25_VME_PATH)/16z002-01_src/Source/wbb2vme_top.vhd
 
 # pcie core simulation files
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_rs_serdes.vhd      
-vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_250.vhd 
-vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_125_250.vhd 
-vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_core.vho
-
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcierd_reconfig_clk_pll.vhd
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_125_250.vhd
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_pll_100_125.vhd
@@ -146,14 +227,15 @@ vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/common/testbench/altpcie_reconfig_3cgx.vhd
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/chaining_dma/Hard_IP_x1_plus.vhd
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_examples/chaining_dma/Hard_IP_x1_rs_hip.vhd
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_core.vho
 
 
 
 ## pcie2wbb
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/src_utils_pkg.vhd 
+vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/generic_dcfifo_mixedw.vhd
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/pcie_msi.vhd 
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/alt_reconf/alt_reconf.vhd 
-vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/generic_dcfifo_mixedw.vhd
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/rx_len_cntr.vhd 
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/rx_get_data.vhd 
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/rx_ctrl.vhd 
@@ -172,9 +254,6 @@ vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/ip_16z091_01.vhd
 vcom -2002 $env(A25_VME_PATH)/Source/z091_01_wb_adr_dec.vhd
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1_serdes.vhd 
 vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x1/Hard_IP_x1.vhd 
-vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x4/Hard_IP_x4_serdes.vhd 
-vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/x4/Hard_IP_x4.vhd 
-vcom -2002 $env(A25_VME_PATH)/16z091-01_src/Source/ip_16z091_01_top.vhd
 vcom -2008 ../Testbench/ip_16z091_01_top_sim.vhd
 
 
@@ -192,11 +271,10 @@ vcom -work work -93 $env(A25_VME_PATH)/Source/wb_bus.vhd
 
 
 
-
 ## Toplevel
-vcom -2002 $env(A25_VME_PATH)/Source/pll_pcie/pll_pcie.vhd
-vcom -2002 $env(A25_VME_PATH)/Source/sram.vhd
-vcom -2002 $env(A25_VME_PATH)/Source/A25_top.vhd
+vcom -2008 $env(A25_VME_PATH)/Source/pll_pcie/pll_pcie.vhd
+vcom -2008 $env(A25_VME_PATH)/Source/sram.vhd
+vcom -2008 ../Testbench/A25_top_sim.vhd
 
 
 ## Testbench
@@ -217,7 +295,11 @@ vsim -t fs  \
 -L altera_mf \
 -L lpm \
 -L sgate \
+-L arriagx_hssi \
+-L arriaii_hssi \
+-L stratixiv_hssi \
 -L cycloneiv_hssi \
+-L stratixiigx_hssi \
 -L pciebfm_lib \
 -l test_report.txt \
 -novopt \
@@ -227,8 +309,7 @@ work.a25_tb_conf
 add wave sim:/a25_tb/a25/*
 add wave sim:/a25_tb/a25/vme/vmedma/*
 add wave sim:/a25_tb/a25/vme/vmedma/dma_mstr/*
-add wave sim:/a25_tb/a25/vme/vmectrl/du/*
-add wave sim:/a25_tb/a25/vme/vmectrl/au/*
+add wave sim:/a25_tb/a25/vme/vmectrl/du/* add wave sim:/a25_tb/a25/vme/vmectrl/au/*
 add wave sim:/a25_tb/a25/vme/vmectrl/bustimer/*
 add wave sim:/a25_tb/a25/vme/vmectrl/master/*
 add wave sim:/a25_tb/a25/vme/vmectrl/requester/*
@@ -236,6 +317,34 @@ add wave sim:/a25_tb/a25/vme/vmectrl/arbiter/*
 add wave sim:/a25_tb/vme_bus/*
 add wave sim:/a25_tb/vme_bus/vmesimmstr/*
 
+#log -r /*
+#add wave -divider {PCIe EP}
+#add wave -group {all EP ports}\
+   #/a25_tb/a25/pcie/*
+
+#add wave -divider {BFM}
+#add wave \
+#   -literal -hex /a25_tb/pcie_sim_inst/bar_addr \
+#   /a25_tb/pcie_sim_inst/bar_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar0_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar0_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar1_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar1_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar2_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar2_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar3_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar3_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar4_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar4_limit \
+#   -literal -hex /a25_tb/pcie_sim_inst/main/var_bar5_addr \
+#   -dec /a25_tb/pcie_sim_inst/main/var_bar5_limit
+#
+#add wave -group {all BFM ports} \
+   #/a25_tb/pcie_sim_inst/bfm_inst/crst \
+   #/a25_tb/pcie_sim_inst/bfm_inst/srst \
+   #/a25_tb/pcie_sim_inst/*
+
+#add wave -divider {DEBUG}
 
 # next 5 lines are for debugging only, remove later
 variable NumericStdNoWarnings 1
