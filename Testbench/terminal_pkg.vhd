@@ -3740,6 +3740,7 @@ PACKAGE BODY terminal_pkg IS
          print(" start DMA transfer");
          wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0003", 1, en_msg_0, TRUE, "000001");  -- start transfer
 
+         -- check for DMA interrupt
          --wait_on_irq_assert(0);
          bfm_calc_msi_expected(
             msi_allocated => var_msi_allocated,
@@ -3763,8 +3764,33 @@ PACKAGE BODY terminal_pkg IS
          IF irq_req(irq_req_dma) = '0' THEN  
             print_time("ERROR vme_dma_sram2pci: dma irq NOT asserted");
          END IF;
+
+         -- check for buserror interrupt
+         bfm_calc_msi_expected(
+            msi_allocated => var_msi_allocated,
+            msi_data      => MSI_DATA_VAL,
+            msi_nbr       => irq_req_berr,
+            msi_expected  => var_msi_expected
+         );
+         var_success := false;
+         bfm_poll_msi(
+            track_msi    => 1,
+            msi_addr     => MSI_SHMEM_ADDR,
+            msi_expected => var_msi_expected,
+            txt_out      => en_msg_0,
+            success      => var_success
+         );
+         if not var_success then 
+            err_sum := err_sum +1;
+            if en_msg_0 >= 1 then print_now("ERROR(vme_buserror): error while executing bfm_poll_msi()"); end if;
+         end if;
+
+         IF irq_req(irq_req_berr) = '0' THEN  
+            print_time("ERROR vme_dma_sram2pci: buserror irq NOT asserted");
+         END IF;
+
          WAIT FOR 1 us;
-         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_001e", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
@@ -3772,6 +3798,9 @@ PACKAGE BODY terminal_pkg IS
          wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_000c", 1, en_msg_0, TRUE, "000001");
          --wait_on_irq_deassert(0);
          IF irq_req(irq_req_dma) = '1' THEN  
+            print_time("ERROR vme_dma_sram2pci: dma irq asserted");
+         END IF;
+         IF irq_req(irq_req_berr) = '1' THEN  
             print_time("ERROR vme_dma_sram2pci: dma irq asserted");
          END IF;
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
