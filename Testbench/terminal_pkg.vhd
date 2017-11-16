@@ -1175,7 +1175,80 @@ PACKAGE BODY terminal_pkg IS
             wr32(terminal_in_0, terminal_out_0, SRAM + (4*i), x"00000000" + (4*i), 1, en_msg_0, TRUE, "000001");
          END LOOP;
 
-      print("Test vme_dma_boundaries: VME DMA: SRAM TO VME AND back with size of 256 bytes (exactly as large as boundary)");
+      print("Test vme_dma_boundaries: VME DMA: SRAM TO VME with size of 4 bytes ");
+         vme_dma(terminal_in_0, terminal_out_0, irq_req, 
+            1,                         -- data block size = 1 longword
+            x"0000_0000",                 -- source address
+            x"0020_0000",                 -- destination address
+            DMA_VME_AM_A24D32_non,        -- vme address modifier 
+            DMA_DEVICE_SRAM,              -- source device
+            DMA_DEVICE_VME,               -- destination device
+            en_msg_0, loc_err);
+
+      print("Test vme_dma_boundaries: VME DMA: VME to SRAM with size of 4 bytes ");
+         vme_dma(terminal_in_0, terminal_out_0, irq_req, 
+            1,                         -- data block size = 1 longword
+            x"0020_0000",                 -- source address
+            x"0000_2000",                 -- destination address
+            DMA_VME_AM_A24D32_non,        -- vme address modifier 
+            DMA_DEVICE_VME,               -- source device
+            DMA_DEVICE_SRAM,              -- destination device
+            en_msg_0, loc_err);
+
+         -- check destination
+         rd32(terminal_in_0, terminal_out_0, VME_A24D32 + x"0020_0000", x"00000000", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         rd32(terminal_in_0, terminal_out_0, SRAM + x"0000_2000", x"00000000", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+         wr32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_000c", 1, en_msg_0, TRUE, "000001");          -- clear dma err
+         rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_002c", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
+         err_sum := err_sum + loc_err;
+
+      print("Test vme_dma_boundaries: VME DMA: SRAM TO VME with size of 0x404 longwords at offset 0x4");
+         vme_dma(terminal_in_0, terminal_out_0, irq_req, 
+            size,                         -- data block size in longword -1
+            x"0000_0000",                 -- source address
+            x"0020_0004",                 -- destination address
+            DMA_VME_AM_A24D32_non,        -- vme address modifier 
+            DMA_DEVICE_SRAM,              -- source device
+            DMA_DEVICE_VME,               -- destination device
+            en_msg_0, loc_err);
+         err_sum := err_sum + loc_err;
+
+         vme_dma(terminal_in_0, terminal_out_0, irq_req, 
+            size,                         -- data block size in longword -1
+            x"0020_0004",                 -- source address
+            x"0000_1000",                 -- destination address
+            DMA_VME_AM_A24D32_non,        -- vme address modifier 
+            DMA_DEVICE_VME,               -- source device
+            DMA_DEVICE_SRAM,              -- destination device
+            en_msg_0, loc_err);
+         err_sum := err_sum + loc_err;
+         
+         -- check destination VME_A24D32
+         FOR i IN 0 TO 2 LOOP
+            rd32(terminal_in_0, terminal_out_0, VME_A24D32 + x"0020_0004" + (4*i), x"00000000" + (4*i), 1, en_msg_0, TRUE, "000001", loc_err);
+            err_sum := err_sum + loc_err;
+         END LOOP;
+         FOR i IN size-2 TO size-1 LOOP
+            rd32(terminal_in_0, terminal_out_0, VME_A24D32 + x"0020_0004" + (4*i), x"00000000" + (4*i), 1, en_msg_0, TRUE, "000001", loc_err);
+            err_sum := err_sum + loc_err;
+         END LOOP;
+         -- check destination SRAM
+         FOR i IN 0 TO 2 LOOP
+            rd32(terminal_in_0, terminal_out_0, SRAM + x"0000_1000" + (4*i), x"00000000" + (4*i), 1, en_msg_0, TRUE, "000001", loc_err);
+            err_sum := err_sum + loc_err;
+         END LOOP;
+         FOR i IN size-2 TO size-1 LOOP
+            rd32(terminal_in_0, terminal_out_0, SRAM + x"0000_1000" + (4*i), x"00000000" + (4*i), 1, en_msg_0, TRUE, "000001", loc_err);
+            err_sum := err_sum + loc_err;
+         END LOOP;
+
+
+     print("Test vme_dma_boundaries: VME DMA: SRAM TO VME AND back with size of 256 bytes (exactly as large as boundary)");
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
             size,                         -- data block size in longword -1
             x"0000_0000",                 -- source address
@@ -1183,7 +1256,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1193,7 +1266,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -1227,7 +1300,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1237,7 +1310,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -1271,7 +1344,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1281,7 +1354,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -1315,7 +1388,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1325,7 +1398,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -1359,7 +1432,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1369,7 +1442,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -1403,7 +1476,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1413,7 +1486,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -1447,7 +1520,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1457,7 +1530,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -1514,7 +1587,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1524,7 +1597,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -1556,7 +1629,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1566,7 +1639,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -1597,7 +1670,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_SRAM,              -- source device
             DMA_DEVICE_VME,               -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
 
          vme_dma(terminal_in_0, terminal_out_0, irq_req, 
@@ -1607,7 +1680,7 @@ PACKAGE BODY terminal_pkg IS
             DMA_VME_AM_A24D32_non,        -- vme address modifier 
             DMA_DEVICE_VME,               -- source device
             DMA_DEVICE_SRAM,              -- destination device
-            en_msg_0, err);
+            en_msg_0, loc_err);
          err_sum := err_sum + loc_err;
          
          -- check destination VME_A24D32
@@ -3615,7 +3688,9 @@ PACKAGE BODY terminal_pkg IS
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
 
-         print (" VME A16/D16 single access");
+
+
+         print (" VME A16/D16 single read access");
          rd32(terminal_in_0, terminal_out_0, VME_A16D16 + x"0000_0000", x"0000_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
          --wait_on_irq_assert(0);
          bfm_calc_msi_expected(
@@ -3651,8 +3726,9 @@ PACKAGE BODY terminal_pkg IS
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
        
+       
          
-         print (" VME A24/D16 single access");
+         print (" VME A24/D16 single read access");
          rd32(terminal_in_0, terminal_out_0, VME_A24D16 + x"0000_0000", x"0000_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
          --wait_on_irq_assert(0);
          bfm_calc_msi_expected(
@@ -3688,7 +3764,9 @@ PACKAGE BODY terminal_pkg IS
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
 
-         print (" VME A32/D32 single access");
+
+
+         print (" VME A32/D32 single read access");
          rd32(terminal_in_0, terminal_out_0, VME_A32D32 + x"0000_0000", x"ffff_ffff", 1, en_msg_0, FALSE, "000001", loc_err);
          --wait_on_irq_assert(0);
          bfm_calc_msi_expected(
@@ -3724,7 +3802,9 @@ PACKAGE BODY terminal_pkg IS
          rd32(terminal_in_0, terminal_out_0, VME_REGS + x"0000_0010", x"0000_0008", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
 
-         print (" VME DMA");
+
+
+         print (" VME DMA A24/D32 read access");
          wr32(terminal_in_0, terminal_out_0, SRAM + x"000F_F900", x"0000_0000", 1, en_msg_0, TRUE, "000001");  -- dest adr
          rd32(terminal_in_0, terminal_out_0, SRAM + x"000F_F900", x"0000_0000", 1, en_msg_0, TRUE, "000001", loc_err);
          err_sum := err_sum + loc_err;
