@@ -67,6 +67,30 @@ PACKAGE vme_sim_pack IS
    CONSTANT sl_base_A24 	: std_logic_vector(3 DOWNTO 0):= "0010";	-- vme base address for A24 slave = 0x20_0000
    CONSTANT sl_base_CRCSR : std_logic_vector(3 DOWNTO 0):= "0100";	-- vme base address for CR/CSR slave = 0x40_0000
    CONSTANT sl_base_A32 	: std_logic_vector(3 DOWNTO 0):= "0011";	-- vme base address for A32 slave = 0x3000_0000
+      
+   -- Address Modifiers
+   CONSTANT AM_A24_SUPER_BLT        : std_logic_vector(5 DOWNTO 0):="111111";
+   CONSTANT AM_A24_SUPER_PROG       : std_logic_vector(5 DOWNTO 0):="111110";
+   CONSTANT AM_A24_SUPER_DAT        : std_logic_vector(5 DOWNTO 0):="111101";
+   CONSTANT AM_A24_SUPER_MBLT       : std_logic_vector(5 DOWNTO 0):="111100";
+   CONSTANT AM_A24_NONPRIV_BLT      : std_logic_vector(5 DOWNTO 0):="111011";
+   CONSTANT AM_A24_NONPRIV_PROG     : std_logic_vector(5 DOWNTO 0):="111010";
+   CONSTANT AM_A24_NONPRIV_DAT      : std_logic_vector(5 DOWNTO 0):="111001";
+   CONSTANT AM_A24_NONPRIV_MBLT     : std_logic_vector(5 DOWNTO 0):="111000";       
+      
+   CONSTANT AM_CRCSR                : std_logic_vector(5 DOWNTO 0):="101111";
+   CONSTANT AM_A16_SUPER            : std_logic_vector(5 DOWNTO 0):="101101";
+   CONSTANT AM_A16_NONPRIV          : std_logic_vector(5 DOWNTO 0):="101001";
+
+   CONSTANT AM_A32_SUPER_BLT        : std_logic_vector(5 DOWNTO 0):="001111";
+   CONSTANT AM_A32_SUPER_PROG       : std_logic_vector(5 DOWNTO 0):="001110";
+   CONSTANT AM_A32_SUPER_DAT        : std_logic_vector(5 DOWNTO 0):="001101";
+   CONSTANT AM_A32_SUPER_MBLT       : std_logic_vector(5 DOWNTO 0):="001100";
+   CONSTANT AM_A32_NONPRIV_BLT      : std_logic_vector(5 DOWNTO 0):="001011";
+   CONSTANT AM_A32_NONPRIV_PROG     : std_logic_vector(5 DOWNTO 0):="001010";
+   CONSTANT AM_A32_NONPRIV_DAT      : std_logic_vector(5 DOWNTO 0):="001001";
+   CONSTANT AM_A32_NONPRIV_MBLT     : std_logic_vector(5 DOWNTO 0):="001000";       
+      
   
    SUBTYPE adr_type2 IS string(8 DOWNTO 1);
    SUBTYPE adr_type IS std_logic_vector(31 DOWNTO 0);
@@ -176,6 +200,7 @@ PACKAGE vme_sim_pack IS
       req_type       : integer;                             -- if set to 0 during conf_req state changes, write request to iram is requested
                                                             -- if set to 1 during conf_req state changes, read request from iram is requested
                                                             -- if set to 2 during conf_req state changes, interrupt request will be set to active
+                                                            -- if set to 3 during conf_req state changes, address modifier of last access to slave is requested
       adr            : std_logic_vector(31 DOWNTO 0);       -- address for config read write access
       wr_dat         : std_logic_vector(31 DOWNTO 0);       -- write data to iram
       
@@ -186,6 +211,7 @@ PACKAGE vme_sim_pack IS
       conf_ack       : boolean;                             -- if conf_req has changed state, subfunction end will result in conf_ack state change     
       rd_dat         : std_logic_vector(31 DOWNTO 0);       -- read data to iram                                                                       
       irq            : std_logic_vector(7 DOWNTO 1);
+      rd_am          : std_logic_vector(5 downto 0);        -- address modifier of last access
    END record;
 
 
@@ -228,6 +254,11 @@ PACKAGE vme_sim_pack IS
       SIGNAL   vme_slv_out    : IN vme_slv_out_type;
                adr            : IN std_logic_vector(31 DOWNTO 0);
                dat            : IN std_logic_vector(31 DOWNTO 0)
+               ) ;
+   PROCEDURE am_vme_slv (  
+      SIGNAL   vme_slv_in     : OUT vme_slv_in_type;
+      SIGNAL   vme_slv_out    : IN vme_slv_out_type;
+               am             : OUT std_logic_vector(5 DOWNTO 0)
                ) ;
    PROCEDURE init_vme_slv (  
       SIGNAL   vme_slv_in     : OUT vme_slv_in_type
@@ -975,6 +1006,20 @@ PACKAGE BODY vme_sim_pack IS
       vme_slv_in.conf_req <= NOT vme_slv_out.conf_ack;
       WAIT on vme_slv_out.conf_ack;
    END PROCEDURE wr_vme_slv;
+--------------------------------------------------------------------------------------------
+
+
+   PROCEDURE am_vme_slv (  
+      SIGNAL   vme_slv_in     : OUT vme_slv_in_type;
+      SIGNAL   vme_slv_out    : IN vme_slv_out_type;
+               am             : OUT std_logic_vector(5 DOWNTO 0)
+               ) is
+   BEGIN
+      vme_slv_in.req_type <= 3;
+      vme_slv_in.conf_req <= NOT vme_slv_out.conf_ack;
+      WAIT on vme_slv_out.conf_ack;
+      am := vme_slv_out.rd_am;
+   END PROCEDURE am_vme_slv;
 
 --------------------------------------------------------------------------------------------
    PROCEDURE rd_vme_slv (  SIGNAL   vme_slv_in     : OUT vme_slv_in_type;

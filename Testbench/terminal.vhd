@@ -212,6 +212,8 @@ term_0: PROCESS
    terminal_err_0 <= terminal_err_0 + err;
    vme_dma_sram2a24d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
+   vme_dma_am(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, vme_slv_in, vme_slv_out, irq_req, en_msg_0, err);
+   terminal_err_0 <= terminal_err_0 + err;
    vme_dma_sram2sram(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);
    terminal_err_0 <= terminal_err_0 + err;
    vme_dma_sram2a32d32(terminal_in_0, terminal_out_0, terminal_in_1, terminal_out_1, irq_req, en_msg_0, err);

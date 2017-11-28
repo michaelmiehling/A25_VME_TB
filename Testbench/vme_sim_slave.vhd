@@ -132,6 +132,7 @@ BEGIN
    mem_head          := new head'(0,null);
    sim_slave_active <= '0';
    data_out <= (OTHERS => 'Z');
+   am_int := (others => '0');
    first_d64_cycle := TRUE;
    conf_ack <= vme_slv_in.conf_req;
    addr <= (OTHERS => 'H');
@@ -165,6 +166,9 @@ BEGIN
                irq_out(vme_slv_in.irq) <= '0';
                irq := vme_slv_in.irq;
                irq_id(irq) := vme_slv_in.wr_dat(7 DOWNTO 0);
+            ELSIF vme_slv_in.req_type = 3 THEN
+               -- request of last address modifier used
+               vme_slv_out.rd_am <= am_int;
             END IF;
             conf_ack <= vme_slv_in.conf_req; -- handshake acknowledge
             next gen_loop;
@@ -187,7 +191,9 @@ BEGIN
          END IF;
                   
          -- D64 burst         
-         IF iackn /= '0' AND  (addr_int(31 DOWNTO 28) = sl_base_A32 AND (am_int(5 DOWNTO 0) = "001000" OR am_int(5 DOWNTO 0) = "001100")) THEN
+         IF iackn /= '0' AND (
+            (addr_int(31 DOWNTO 28) = sl_base_A32 AND (am_int(5 DOWNTO 0) = AM_A32_NONPRIV_MBLT OR am_int(5 DOWNTO 0) = AM_A32_SUPER_MBLT)) or
+            (addr_int(23 DOWNTO 20) = sl_base_A24 AND (am_int(5 DOWNTO 0) = AM_A24_NONPRIV_MBLT OR am_int(5 DOWNTO 0) = AM_A24_SUPER_MBLT))) THEN
             sim_slave_active <= '1';
             IF writen_in = '1' THEN                                    -- READ
                WAIT FOR time_26;
@@ -215,6 +221,7 @@ BEGIN
                data_out <= (OTHERS => 'H');
                addr <= (OTHERS => 'H');
                WAIT FOR 10 ns;
+--               WAIT FOR 120 ns;  -- extended to simulate slow slave with long dtackn active
                dtackn_out <= 'H';
             ELSE                                                -- WRITE
                IF first_d64_cycle = FALSE THEN
@@ -241,6 +248,7 @@ BEGIN
                   WAIT until rising_edge(dsbn_in);
                END IF;
                WAIT FOR 10 ns;
+--               WAIT FOR 120 ns;  -- extended to simulate slow slave with long dtackn active
                dtackn_out <= 'H';
             END IF;
             first_d64_cycle := FALSE;
@@ -248,7 +256,7 @@ BEGIN
          -- all normal accesses   
          ELSIF iackn /= '0' AND ( (addr_int(15 DOWNTO 12) = sl_base_A16 AND am_int(5 DOWNTO 4) = "10") OR
             (addr_int(23 DOWNTO 20) = sl_base_A24 AND am_int(5 DOWNTO 4) = "11") OR
-            (addr_int(23 DOWNTO 20) = sl_base_CRCSR AND am_int(5 DOWNTO 0) = "101111") OR
+            (addr_int(23 DOWNTO 20) = sl_base_CRCSR AND am_int(5 DOWNTO 0) = AM_CRCSR) OR
             (addr_int(31 DOWNTO 28) = sl_base_A32 AND am_int(5 DOWNTO 4) = "00") )THEN
               
             sim_slave_active <= '1';
@@ -312,7 +320,7 @@ BEGIN
                  dtackn_out <= 'H';
             END IF;
             -- 0x0B, 0x0F, 0x3B, 0x3F => 32Bit Block Transfer 
-            IF am_int = "001011" OR am_int = "001111" OR am_int = "111011" OR am_int = "111111" THEN
+            IF am_int = AM_A32_NONPRIV_BLT OR am_int = AM_A32_SUPER_BLT OR am_int = AM_A24_NONPRIV_BLT OR am_int = AM_A24_SUPER_BLT THEN
                IF addr_int(0) = '0' THEN
                   addr_int := addr_int + 4;
                ELSE
@@ -329,7 +337,7 @@ BEGIN
                END IF;
             END IF;
             sim_slave_active <= '1';
-            IF writen_in = '1' AND dsan_in = '0' AND dsbn_in /= '0' AND addr_int(0) = '1' THEN -- read iack
+            IF writen_in = '1' AND dsan_in = '0' AND dsbn_in /= '0' AND addr_int(0) = '1' THEN -- read iack D08
                IF ((irq = 1 AND addr_int(3 DOWNTO 1) = "001") OR
                 (irq = 2 AND addr_int(3 DOWNTO 1) = "010") OR
                 (irq = 3 AND addr_int(3 DOWNTO 1) = "011") OR
@@ -340,6 +348,57 @@ BEGIN
                   WAIT FOR time_26;
                   data_out(7 DOWNTO 0) <= irq_id(irq); -- B(0)
                   data_out(31 DOWNTO 8) <= (OTHERS => '0');
+                  WAIT FOR time_27;
+                  irq_out <= (OTHERS => 'H');
+                  irq := 0;
+                  dtackn_out <= '0';
+                  IF dsan_in = '0' THEN
+                     WAIT until rising_edge(dsan_in);
+                  END IF;
+                  data_out <= (OTHERS => 'H');
+                  WAIT FOR 10 ns;
+                  dtackn_out <= 'H';
+               ELSE
+                  WAIT until rising_edge(asn_in);
+               END IF;
+            ELSIF writen_in = '1' AND dsan_in = '0' AND dsbn_in = '0' AND addr_int(0) = '1' THEN -- read iack D16
+               IF ((irq = 1 AND addr_int(3 DOWNTO 1) = "001") OR
+                (irq = 2 AND addr_int(3 DOWNTO 1) = "010") OR
+                (irq = 3 AND addr_int(3 DOWNTO 1) = "011") OR
+                (irq = 4 AND addr_int(3 DOWNTO 1) = "100") OR
+                (irq = 5 AND addr_int(3 DOWNTO 1) = "101") OR
+                (irq = 6 AND addr_int(3 DOWNTO 1) = "110") OR
+                (irq = 7 AND addr_int(3 DOWNTO 1) = "111")) THEN
+                  WAIT FOR time_26;
+                  data_out(7 DOWNTO 0) <= irq_id(irq); -- B(0)
+                  data_out(15 DOWNTO 8) <= irq_id(irq); -- B(0)
+                  data_out(31 DOWNTO 16) <= (OTHERS => '0');
+                  WAIT FOR time_27;
+                  irq_out <= (OTHERS => 'H');
+                  irq := 0;
+                  dtackn_out <= '0';
+                  IF dsan_in = '0' THEN
+                     WAIT until rising_edge(dsan_in);
+                  END IF;
+                  data_out <= (OTHERS => 'H');
+                  WAIT FOR 10 ns;
+                  dtackn_out <= 'H';
+               ELSE
+                  WAIT until rising_edge(asn_in);
+               END IF;
+            ELSIF writen_in = '1' AND dsan_in = '0' AND dsbn_in = '0' AND addr_int(0) = '1' THEN -- read iack D32
+               IF ((irq = 1 AND addr_int(3 DOWNTO 1) = "001") OR
+                (irq = 2 AND addr_int(3 DOWNTO 1) = "010") OR
+                (irq = 3 AND addr_int(3 DOWNTO 1) = "011") OR
+                (irq = 4 AND addr_int(3 DOWNTO 1) = "100") OR
+                (irq = 5 AND addr_int(3 DOWNTO 1) = "101") OR
+                (irq = 6 AND addr_int(3 DOWNTO 1) = "110") OR
+                (irq = 7 AND addr_int(3 DOWNTO 1) = "111")) THEN
+                  WAIT FOR time_26;
+                  data_out(7 DOWNTO 0) <= irq_id(irq); -- B(0)
+                  data_out(15 DOWNTO 8) <= irq_id(irq); -- B(0)
+                  data_out(23 DOWNTO 16) <= irq_id(irq); -- B(0)
+                  data_out(31 DOWNTO 24) <= irq_id(irq); -- B(0)
                   WAIT FOR time_27;
                   irq_out <= (OTHERS => 'H');
                   irq := 0;
